@@ -1,0 +1,19 @@
+{
+  "name": "GeoLog - 个人足迹手账",
+  "short_name": "GeoLog",
+  "description": "记录你的旅行足迹，探索世界的每一个角落",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "orientation": "portrait-primary",
+  "categories": ["travel", "lifestyle", "productivity"],
+  "lang": "zh-CN"
+}
