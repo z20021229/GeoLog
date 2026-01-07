@@ -99,14 +99,18 @@ const Map: React.FC<MapProps> = ({
   onMapClick,
   selectedFootprintId 
 }) => {
+  // 确保只在客户端执行
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   const mapRef = useRef<any>(null);
   const [L, setL] = useState<any>(null);
-  const [isClient, setIsClient] = useState(false);
+  const [isClient, setIsClient] = useState(true);
   const [tempMarker, setTempMarker] = useState<[number, number] | null>(null);
   
-  // 确保只在客户端执行
+  // 动态加载 Leaflet
   useEffect(() => {
-    setIsClient(true);
     import('leaflet').then((leaflet) => {
       setL(leaflet.default);
     }).catch((error) => {

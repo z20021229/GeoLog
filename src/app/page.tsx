@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Sidebar from '../components/Sidebar';
 import AddFootprintDialog from '../components/Dialog/AddFootprintDialog';
@@ -61,13 +61,15 @@ const Home: React.FC = () => {
       {/* Main Content - Map */}
       <div className="flex-1 relative">
         <div className="absolute inset-0 p-4">
-          <Map 
-            center={mapCenter}
-            zoom={mapZoom}
-            footprints={footprints}
-            onMapClick={handleMapClick}
-            selectedFootprintId={selectedFootprintId}
-          />
+          <Suspense fallback={<div className='h-full w-full bg-slate-900 animate-pulse' />}>
+            <Map 
+              center={mapCenter}
+              zoom={mapZoom}
+              footprints={footprints}
+              onMapClick={handleMapClick}
+              selectedFootprintId={selectedFootprintId}
+            />
+          </Suspense>
         </div>
       </div>
       
