@@ -9,6 +9,7 @@ import { Textarea } from '../ui/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/Select';
 import { FootprintCategory, FootprintFormData } from '../../types';
 import { getAddressFromCoordinates } from '../../utils/geocoding';
+import { compressAndConvertImage } from '../../utils/imageUtils';
 
 interface AddFootprintDialogProps {
   open: boolean;
@@ -24,9 +25,12 @@ const AddFootprintDialog: React.FC<AddFootprintDialogProps> = ({ open, onClose, 
     date: new Date().toISOString().split('T')[0],
     description: '',
     category: '打卡',
+    image: undefined,
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
 
   // 当坐标变化时，自动获取地址信息
   useEffect(() => {
@@ -53,16 +57,48 @@ const AddFootprintDialog: React.FC<AddFootprintDialogProps> = ({ open, onClose, 
     }
   }, [open, coordinates]);
 
+  // 图片处理函数
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImageProcessing(true);
+    try {
+      const compressedImage = await compressAndConvertImage(file);
+      setFormData(prev => ({ ...prev, image: compressedImage }));
+      setImagePreview(compressedImage);
+    } catch (error) {
+      console.error('图片处理失败:', error);
+      alert('图片处理失败，请重试');
+    } finally {
+      setIsImageProcessing(false);
+    }
+  };
+
+  // 移除图片
+  const removeImage = () => {
+    setFormData(prev => ({ ...prev, image: undefined }));
+    setImagePreview(null);
+  };
+
+  // 重置表单
+  useEffect(() => {
+    if (!open) {
+      setFormData({
+        name: '',
+        location: '',
+        date: new Date().toISOString().split('T')[0],
+        description: '',
+        category: '打卡',
+        image: undefined,
+      });
+      setImagePreview(null);
+    }
+  }, [open]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAddFootprint(formData);
-    setFormData({
-      name: '',
-      location: '',
-      date: new Date().toISOString().split('T')[0],
-      description: '',
-      category: '打卡',
-    });
     onClose();
   };
 
@@ -145,6 +181,54 @@ const AddFootprintDialog: React.FC<AddFootprintDialogProps> = ({ open, onClose, 
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
+            </div>
+
+            {/* 图片上传 */}
+            <div className="space-y-2">
+              <Label>照片</Label>
+              {imagePreview ? (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="预览"
+                      className="w-full h-48 object-cover rounded-md"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2"
+                    >
+                      移除
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    已选择图片，点击"移除"可更换
+                  </p>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    type="file"
+                    id="image"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => document.getElementById('image')?.click()}
+                    disabled={isImageProcessing}
+                  >
+                    {isImageProcessing ? '处理中...' : '选择图片'}
+                  </Button>
+                  <p className="text-xs text-muted-foreground self-center">
+                    支持 JPG、PNG 等格式，最大 5MB
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* 坐标信息 */}

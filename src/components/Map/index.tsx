@@ -302,6 +302,15 @@ const Map: React.FC<MapProps> = ({
           >
             <Popup>
               <div className="p-2 min-w-[200px]">
+                {footprint.image && (
+                  <div className="mb-2">
+                    <img
+                      src={footprint.image}
+                      alt={footprint.name}
+                      className="w-full h-48 object-cover rounded-md"
+                    />
+                  </div>
+                )}
                 <h3 className="font-bold text-lg">{footprint.name}</h3>
                 <p className="text-sm text-muted-foreground mb-2">{footprint.location}</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">

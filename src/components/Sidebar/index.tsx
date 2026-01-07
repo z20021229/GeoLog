@@ -107,25 +107,34 @@ const Sidebar: React.FC<SidebarProps> = ({
                     className={`p-3 rounded-md cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent'}`}
                     onClick={() => onSelectFootprint(footprint)}
                   >
-                    <div className="flex items-start gap-3">
-                      <MapPin className="mt-1 flex-shrink-0" size={18} />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{footprint.name}</h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                          <span className="truncate">{footprint.location}</span>
-                          <Calendar size={14} />
-                          <span>{formatDate(footprint.date)}</span>
+                    <div className="flex flex-col gap-3">
+                      {footprint.image && (
+                        <img
+                          src={footprint.image}
+                          alt={footprint.name}
+                          className="w-full h-24 object-cover rounded-md"
+                        />
+                      )}
+                      <div className="flex items-start gap-3">
+                        <MapPin className="mt-1 flex-shrink-0" size={18} />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">{footprint.name}</h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                            <span className="truncate">{footprint.location}</span>
+                            <Calendar size={14} />
+                            <span>{formatDate(footprint.date)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${footprint.category === '探店' ? 'bg-red-500/20 text-red-300' : 
+                                                           footprint.category === '户外' ? 'bg-green-500/20 text-green-300' : 
+                                                           footprint.category === '城市' ? 'bg-blue-500/20 text-blue-300' : 
+                                                           'bg-orange-500/20 text-orange-300'}`}>
+                              {footprint.category}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${footprint.category === '探店' ? 'bg-red-500/20 text-red-300' : 
-                                                         footprint.category === '户外' ? 'bg-green-500/20 text-green-300' : 
-                                                         footprint.category === '城市' ? 'bg-blue-500/20 text-blue-300' : 
-                                                         'bg-orange-500/20 text-orange-300'}`}>
-                            {footprint.category}
-                          </span>
-                        </div>
+                        <ChevronRight size={16} className="mt-1 text-muted-foreground" />
                       </div>
-                      <ChevronRight size={16} className="mt-1 text-muted-foreground" />
                     </div>
                   </div>
                 ))}

@@ -11,6 +11,7 @@ export interface Footprint {
   category: FootprintCategory;  // 分类
   coordinates: [number, number];  // 坐标：[纬度, 经度]
   createdAt: number;     // 创建时间戳
+  image?: string;        // Base64 格式的图片数据（可选）
 }
 
 // 足迹表单数据
@@ -20,4 +21,5 @@ export interface FootprintFormData {
   date: string;
   description: string;
   category: FootprintCategory;
+  image?: string;        // Base64 格式的图片数据（可选）
 }
