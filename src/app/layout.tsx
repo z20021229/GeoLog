@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import ServiceWorkerRegister from '../components/ServiceWorkerRegister'
+import NetworkMonitor from '../components/NetworkMonitor'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
     title: 'GeoLog - 个人足迹手账',
     description: '记录你的旅行足迹，探索世界的每一个角落',
   },
+  themeColor: '#3b82f6',
 }
 
 export const viewport: Viewport = {
@@ -46,7 +48,9 @@ export default function RootLayout({
     <html lang="zh-CN" className="dark">
       <body className={inter.className}>
         <ServiceWorkerRegister />
-        {children}
+        <NetworkMonitor>
+          {children}
+        </NetworkMonitor>
       </body>
     </html>
   )

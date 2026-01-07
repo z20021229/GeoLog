@@ -1,0 +1,226 @@
+/* 简化版 Leaflet CSS - 本地引入，避免 CDN 问题 */
+.leaflet-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.leaflet-map-pane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.leaflet-tile-pane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  filter: inherit;
+}
+
+.leaflet-tile {
+  position: absolute;
+  filter: inherit;
+  -webkit-filter: inherit;
+  image-rendering: optimizeSpeed;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: optimize-contrast;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+
+.leaflet-marker-pane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.leaflet-marker-icon {
+  position: absolute;
+  width: 28px;
+  height: 38px;
+  margin-left: -14px;
+  margin-top: -38px;
+  pointer-events: auto;
+}
+
+.leaflet-popup-pane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.leaflet-popup {
+  position: absolute;
+  text-align: center;
+  z-index: 7;
+  pointer-events: auto;
+}
+
+.leaflet-popup-content-wrapper {
+  padding: 1px;
+  text-align: left;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaflet-popup-content {
+  margin: 13px 19px;
+  line-height: 1.4;
+  font-size: 14px;
+  color: white;
+}
+
+.leaflet-popup-tip-container {
+  margin: 0 auto;
+  width: 40px;
+  height: 20px;
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.leaflet-popup-tip {
+  width: 17px;
+  height: 17px;
+  padding: 1px;
+  margin: -10px auto 0;
+  -webkit-transform: rotate(45deg);
+  transform: rotate(45deg);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: auto;
+}
+
+.leaflet-control {
+  position: relative;
+  z-index: 8;
+  pointer-events: auto;
+}
+
+.leaflet-bottom, .leaflet-top {
+  position: absolute;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.leaflet-bottom {
+  bottom: 0;
+}
+
+.leaflet-top {
+  top: 0;
+}
+
+.leaflet-left {
+  left: 0;
+}
+
+.leaflet-right {
+  right: 0;
+}
+
+.leaflet-control {
+  float: left;
+  clear: both;
+  margin: 5px;
+  pointer-events: auto;
+}
+
+.leaflet-control-zoom {
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaflet-control-zoom a {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  text-decoration: none;
+  color: white;
+  font: bold 18px 'Lucida Console', Monaco, monospace;
+  background-color: rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.leaflet-control-zoom a.leaflet-control-zoom-in {
+  border-radius: 4px 4px 0 0;
+}
+
+.leaflet-control-zoom a.leaflet-control-zoom-out {
+  border-radius: 0 0 4px 4px;
+  border-bottom: none;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: rgba(30, 41, 59, 0.9);
+}
+
+.leaflet-control-attribution {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 0 5px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.leaflet-control-attribution a {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+}
+
+.leaflet-control-attribution a:hover {
+  text-decoration: underline;
+}
+
+.leaflet-control-scale-line {
+  padding: 2px 5px;
+  font-size: 10px;
+  color: white;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.custom-leaflet-marker {
+  pointer-events: auto;
+}
+
+.marker-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 38px;
+}

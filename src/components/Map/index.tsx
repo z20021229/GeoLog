@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import { Footprint } from '../../types';
 import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
 
@@ -120,6 +119,25 @@ const Map: React.FC<MapProps> = ({
       </div>
     );
   }
+
+  // 动态加载本地 Leaflet CSS
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = '/leaflet/leaflet.css';
+      link.crossOrigin = 'anonymous';
+      document.head.appendChild(link);
+      
+      return () => {
+        const cssLink = document.getElementById('leaflet-css');
+        if (cssLink) {
+          cssLink.remove();
+        }
+      };
+    }
+  }, []);
 
   const mapRef = useRef<any>(null);
   const [L, setL] = useState<any>(null);
