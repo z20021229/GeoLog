@@ -106,7 +106,7 @@ const AddFootprintDialog: React.FC<AddFootprintDialogProps> = ({ open, onClose, 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-card border-border">
+      <DialogContent className="bg-card border-border max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>添加足迹</DialogTitle>
           <DialogDescription>
@@ -192,7 +192,7 @@ const AddFootprintDialog: React.FC<AddFootprintDialogProps> = ({ open, onClose, 
                     <img
                       src={imagePreview}
                       alt="预览"
-                      className="w-full h-48 object-cover rounded-md"
+                      className="w-full max-h-48 object-cover rounded-lg border border-border shadow-sm"
                     />
                     <Button
                       variant="destructive"
@@ -208,7 +208,7 @@ const AddFootprintDialog: React.FC<AddFootprintDialogProps> = ({ open, onClose, 
                   </p>
                 </div>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Input
                     type="file"
                     id="image"
@@ -234,24 +234,24 @@ const AddFootprintDialog: React.FC<AddFootprintDialogProps> = ({ open, onClose, 
             {/* 坐标信息 */}
             <div className="space-y-2">
               <Label>坐标信息</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Input
                   placeholder="纬度"
                   value={coordinates[0].toString()}
                   readOnly
-                  className="bg-muted"
+                  className="bg-muted flex-1 min-w-[120px]"
                 />
                 <Input
                   placeholder="经度"
                   value={coordinates[1].toString()}
                   readOnly
-                  className="bg-muted"
+                  className="bg-muted flex-1 min-w-[120px]"
                 />
               </div>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="sticky bottom-0 bg-card border-t border-border p-4 -mx-4 mt-4">
             <Button variant="secondary" onClick={onClose}>取消</Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? '保存中...' : '保存'}
