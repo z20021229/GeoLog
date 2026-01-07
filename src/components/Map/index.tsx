@@ -1,13 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-
-// Fix Leaflet marker icons
 import 'leaflet/dist/leaflet.css';
 import { Footprint } from '../../types';
-import { createCustomMarkerIcon, createTemporaryMarkerIcon } from '../../utils/markerUtils';
 
 interface MapProps {
   center?: [number, number];
@@ -24,6 +20,8 @@ interface MapViewProps {
 
 interface MapEventsProps {
   onMapClick: (latlng: [number, number]) => void;
+  tempMarker: [number, number] | null;
+  setTempMarker: (marker: [number, number] | null) => void;
 }
 
 // 地图视图控制器组件
@@ -31,54 +29,67 @@ const MapView: React.FC<MapViewProps> = ({ center, zoom }) => {
   const map = useMap();
   
   React.useEffect(() => {
-    // 使用 flyTo 实现平滑动画跳转
-    map.flyTo(center, zoom, {
-      duration: 1.5,
-      easeLinearity: 0.25,
-    });
+    if (map) {
+      map.flyTo(center, zoom, {
+        duration: 1.5,
+        easeLinearity: 0.25,
+      });
+    }
   }, [center, zoom, map]);
 
   return null;
 };
 
-// 地图点击事件处理组件 - 使用 useMapEvents 钩子
-const MapEvents: React.FC<MapEventsProps> = ({ onMapClick }) => {
-  const [tempMarker, setTempMarker] = useState<[number, number] | null>(null);
-  
-  // 使用 useMapEvents 钩子处理地图点击事件
-  const map = useMapEvents({
+// 地图点击事件处理组件
+const MapEvents: React.FC<MapEventsProps> = ({ onMapClick, tempMarker, setTempMarker }) => {
+  useMapEvents({
     click: (e) => {
       const latlng: [number, number] = [e.latlng.lat, e.latlng.lng];
-      
-      // 设置临时 Marker
       setTempMarker(latlng);
-      
-      // 触发地图点击回调，弹出弹窗
       onMapClick(latlng);
       
-      // 3秒后移除临时 Marker
       setTimeout(() => {
         setTempMarker(null);
       }, 3000);
     },
   });
 
-  return (
-    <>
-      {/* 临时 Marker */}
-      {tempMarker && (
-        <Marker position={tempMarker} icon={createTemporaryMarkerIcon()}>
-          <Popup>
-            <div className="p-2">
-              <h3 className="font-bold">临时标记</h3>
-              <p>点击位置：{tempMarker[0].toFixed(6)}, {tempMarker[1].toFixed(6)}</p>
-              <p className="text-xs text-muted-foreground mt-1">3秒后自动消失</p>
-            </div>
-          </Popup>
-        </Marker>
-      )}
-    </>
-  );
+  return null;
+};
+
+// 创建临时 Marker 图标的工厂函数
+const createTemporaryIcon = (L: any) => {
+  const color = '#ec4899';
+  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
+  
+  return L.divIcon({
+    className: 'custom-leaflet-marker',
+    html: `<div class="marker-container">${svgIcon}</div>`,
+    iconSize: [28, 38],
+    iconAnchor: [14, 38],
+    popupAnchor: [0, -38],
+  });
+};
+
+// 创建自定义 Marker 图标的工厂函数
+const createCustomIcon = (L: any, category: string) => {
+  const colors: Record<string, string> = {
+    '探店': '#ef4444',
+    '户外': '#10b981',
+    '城市': '#3b82f6',
+    '打卡': '#f59e0b',
+  };
+  
+  const color = colors[category] || '#3b82f6';
+  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
+  
+  return L.divIcon({
+    className: 'custom-leaflet-marker',
+    html: `<div class="marker-container">${svgIcon}</div>`,
+    iconSize: [28, 38],
+    iconAnchor: [14, 38],
+    popupAnchor: [0, -38],
+  });
 };
 
 const Map: React.FC<MapProps> = ({ 
@@ -88,17 +99,28 @@ const Map: React.FC<MapProps> = ({
   onMapClick,
   selectedFootprintId 
 }) => {
-  const mapRef = React.useRef<L.Map | null>(null);
-
-  // 当选中足迹变化时，打开对应的弹窗
+  const mapRef = useRef<any>(null);
+  const [L, setL] = useState<any>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [tempMarker, setTempMarker] = useState<[number, number] | null>(null);
+  
+  // 确保只在客户端执行
   useEffect(() => {
-    if (mapRef.current && selectedFootprintId) {
+    setIsClient(true);
+    import('leaflet').then((leaflet) => {
+      setL(leaflet.default);
+    }).catch((error) => {
+      console.error('Failed to load Leaflet:', error);
+    });
+  }, []);
+
+  // 处理弹窗打开
+  useEffect(() => {
+    if (isClient && mapRef.current && selectedFootprintId && L) {
       const selectedFootprint = footprints.find(fp => fp.id === selectedFootprintId);
       if (selectedFootprint) {
-        // 延迟执行，确保地图已经渲染完成
         setTimeout(() => {
-          // 找到对应的 marker 并打开弹窗
-          const marker = mapRef.current?.eachLayer((layer) => {
+          mapRef.current?.eachLayer((layer: any) => {
             if (layer instanceof L.Marker) {
               const markerLatLng = layer.getLatLng();
               if (markerLatLng.lat === selectedFootprint.coordinates[0] && 
@@ -110,7 +132,19 @@ const Map: React.FC<MapProps> = ({
         }, 500);
       }
     }
-  }, [selectedFootprintId, footprints]);
+  }, [selectedFootprintId, footprints, isClient, L]);
+
+  // 加载状态
+  if (!isClient || !L) {
+    return (
+      <div className="w-full h-full bg-muted flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-muted-foreground">加载地图中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full rounded-md overflow-hidden relative z-10">
@@ -121,22 +155,23 @@ const Map: React.FC<MapProps> = ({
         style={{ height: '100%', width: '100%', pointerEvents: 'auto', zIndex: 1 }}
         ref={mapRef}
       >
-        {/* CartoDB Dark Matter Tile Layer */}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           subdomains={['a', 'b', 'c', 'd']}
         />
         
-        {/* 地图点击事件处理组件 - 嵌套在 MapContainer 内部 */}
-        <MapEvents onMapClick={onMapClick} />
+        <MapEvents 
+          onMapClick={onMapClick} 
+          tempMarker={tempMarker}
+          setTempMarker={setTempMarker}
+        />
         
-        {/* 渲染所有足迹的 Marker */}
         {footprints.map((footprint) => (
           <Marker 
             key={footprint.id} 
             position={footprint.coordinates} 
-            icon={createCustomMarkerIcon(footprint.category)}
+            icon={createCustomIcon(L, footprint.category)}
           >
             <Popup>
               <div className="p-2 min-w-[200px]">
@@ -152,7 +187,18 @@ const Map: React.FC<MapProps> = ({
           </Marker>
         ))}
         
-        {/* Map view controller */}
+        {tempMarker && (
+          <Marker position={tempMarker} icon={createTemporaryIcon(L)}>
+            <Popup>
+              <div className="p-2">
+                <h3 className="font-bold">临时标记</h3>
+                <p>点击位置：{tempMarker[0].toFixed(6)}, {tempMarker[1].toFixed(6)}</p>
+                <p className="text-xs text-muted-foreground mt-1">3秒后自动消失</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+        
         <MapView center={center} zoom={zoom} />
       </MapContainer>
     </div>
