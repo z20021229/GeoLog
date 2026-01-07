@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Footprint } from '../../types';
+import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
 
 interface MapProps {
   center?: [number, number];
@@ -30,10 +31,14 @@ const MapView: React.FC<MapViewProps> = ({ center, zoom }) => {
   
   React.useEffect(() => {
     if (map) {
-      map.flyTo(center, zoom, {
-        duration: 1.5,
-        easeLinearity: 0.25,
-      });
+      try {
+        map.flyTo(center, zoom, {
+          duration: 1.5,
+          easeLinearity: 0.25,
+        });
+      } catch (error) {
+        console.error('Failed to fly to location:', error);
+      }
     }
   }, [center, zoom, map]);
 
@@ -44,13 +49,18 @@ const MapView: React.FC<MapViewProps> = ({ center, zoom }) => {
 const MapEvents: React.FC<MapEventsProps> = ({ onMapClick, tempMarker, setTempMarker }) => {
   useMapEvents({
     click: (e) => {
-      const latlng: [number, number] = [e.latlng.lat, e.latlng.lng];
-      setTempMarker(latlng);
-      onMapClick(latlng);
-      
-      setTimeout(() => {
-        setTempMarker(null);
-      }, 3000);
+      try {
+        const latlng: [number, number] = [e.latlng.lat, e.latlng.lng];
+        setTempMarker(latlng);
+        onMapClick(latlng);
+        
+        setTimeout(() => {
+          setTempMarker(null);
+        }, 3000);
+      } catch (error) {
+        console.error('Map click error:', error);
+        showError(error as Error);
+      }
     },
   });
 
@@ -101,21 +111,83 @@ const Map: React.FC<MapProps> = ({
 }) => {
   // 确保只在客户端执行
   if (typeof window === 'undefined') {
-    return null;
+    return (
+      <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary mx-auto mb-3"></div>
+          <p className="text-white text-sm">加载地图中...</p>
+        </div>
+      </div>
+    );
   }
 
   const mapRef = useRef<any>(null);
   const [L, setL] = useState<any>(null);
   const [isClient, setIsClient] = useState(true);
   const [tempMarker, setTempMarker] = useState<[number, number] | null>(null);
-  
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // 添加错误监听
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('Window error:', event.error);
+      showError(event.error);
+      setLoadError(event.error.message);
+      return true;
+    };
+
+    window.addEventListener('error', handleError);
+    return () => {
+      window.removeEventListener('error', handleError);
+    };
+  }, []);
+
+  // 检查浏览器兼容性
+  useEffect(() => {
+    const supports = checkBrowserSupport();
+    
+    // 检查必要的支持
+    const requiredSupports = Object.values(supports);
+    if (requiredSupports.some(support => !support)) {
+      const missingFeatures = Object.entries(supports)
+        .filter(([_, supported]) => !supported)
+        .map(([feature]) => feature)
+        .join(', ');
+      
+      const errorMsg = `您的浏览器缺少必要功能：${missingFeatures}。请尝试更新浏览器或使用现代浏览器。`;
+      setLoadError(errorMsg);
+      showError(errorMsg);
+      return;
+    }
+  }, []);
+
   // 动态加载 Leaflet
   useEffect(() => {
-    import('leaflet').then((leaflet) => {
-      setL(leaflet.default);
-    }).catch((error) => {
-      console.error('Failed to load Leaflet:', error);
-    });
+    const loadLeaflet = async () => {
+      try {
+        // 等待 DOM 加载完成
+        if (document.readyState !== 'complete') {
+          await new Promise(resolve => window.addEventListener('load', resolve));
+        }
+        
+        // 动态导入 Leaflet
+        const leaflet = await import('leaflet');
+        setL(leaflet.default);
+        
+        // 延迟一点确保地图准备就绪
+        setTimeout(() => {
+          setIsMapReady(true);
+        }, 500);
+      } catch (error) {
+        const errorMsg = '加载地图资源失败，请检查网络连接后刷新页面。';
+        console.error(errorMsg, error);
+        setLoadError(errorMsg);
+        showError(errorMsg);
+      }
+    };
+    
+    loadLeaflet();
   }, []);
 
   // 处理弹窗打开
@@ -123,29 +195,57 @@ const Map: React.FC<MapProps> = ({
     if (isClient && mapRef.current && selectedFootprintId && L) {
       const selectedFootprint = footprints.find(fp => fp.id === selectedFootprintId);
       if (selectedFootprint) {
-        setTimeout(() => {
-          mapRef.current?.eachLayer((layer: any) => {
-            if (layer instanceof L.Marker) {
-              const markerLatLng = layer.getLatLng();
-              if (markerLatLng.lat === selectedFootprint.coordinates[0] && 
-                  markerLatLng.lng === selectedFootprint.coordinates[1]) {
-                layer.openPopup();
+        try {
+          setTimeout(() => {
+            mapRef.current?.eachLayer((layer: any) => {
+              if (layer instanceof L.Marker) {
+                const markerLatLng = layer.getLatLng();
+                if (markerLatLng.lat === selectedFootprint.coordinates[0] && 
+                    markerLatLng.lng === selectedFootprint.coordinates[1]) {
+                  layer.openPopup();
+                }
               }
-            }
-          });
-        }, 500);
+            });
+          }, 500);
+        } catch (error) {
+          console.error('Failed to open popup:', error);
+        }
       }
     }
   }, [selectedFootprintId, footprints, isClient, L]);
 
-  // 加载状态
-  if (!isClient || !L) {
+  // 显示错误信息
+  if (loadError) {
     return (
-      <div className="w-full h-full bg-muted flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-muted-foreground">加载地图中...</p>
+      <div className="w-full h-full bg-slate-900 flex items-center justify-center p-6">
+        <div className="text-center max-w-md">
+          <div className="text-red-400 mb-4">⚠️</div>
+          <h3 className="text-white text-lg font-medium mb-2">地图加载失败</h3>
+          <p className="text-gray-300 text-sm mb-4">{loadError}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+          >
+            刷新页面
+          </button>
         </div>
+      </div>
+    );
+  }
+
+  // 显示加载状态
+  if (!isMapReady || !L) {
+    return (
+      <div className="w-full h-full bg-slate-900 flex flex-col items-center justify-center">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/30 border-t-primary mx-auto mb-4"></div>
+          <div className="absolute inset-0 animate-ping rounded-full bg-primary/20"></div>
+        </div>
+        <p className="text-white text-sm mb-2">加载地图资源中...</p>
+        <p className="text-gray-400 text-xs">请稍候，这可能需要几秒钟</p>
+        {isMobile() && (
+          <p className="text-gray-500 text-xs mt-2">正在为移动设备优化...</p>
+        )}
       </div>
     );
   }
@@ -158,7 +258,11 @@ const Map: React.FC<MapProps> = ({
         className="w-full h-full"
         style={{ height: '100%', width: '100%', pointerEvents: 'auto', zIndex: 1 }}
         ref={mapRef}
+        whenReady={() => {
+          setIsMapReady(true);
+        }}
       >
+        {/* CartoDB Dark Matter Tile Layer */}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -171,6 +275,7 @@ const Map: React.FC<MapProps> = ({
           setTempMarker={setTempMarker}
         />
         
+        {/* 渲染所有足迹的 Marker */}
         {footprints.map((footprint) => (
           <Marker 
             key={footprint.id} 
