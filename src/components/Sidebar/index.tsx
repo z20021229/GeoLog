@@ -113,7 +113,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           </Tabs.Trigger>
         </Tabs.List>
 
-        <Tabs.Content value="list" className="flex-1 overflow-hidden flex flex-col">
+        {/* 足迹列表 - 保持原有flex布局 */}
+        <Tabs.Content value="list" className="flex-1 overflow-hidden flex flex-col m-0 p-0">
           <div className="p-4 pb-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
@@ -179,6 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </Tabs.Content>
 
+        {/* 数据统计 - 使用block布局 */}
         <Tabs.Content value="stats" style={{ display: 'block', height: '100%', padding: 0 }}>
           <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
