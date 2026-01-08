@@ -114,8 +114,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.List>
 
         {/* 足迹列表 */}
-        <Tabs.Content value="list" className="flex-1 overflow-y-auto">
-          <div className="min-h-[200px] w-full bg-red-500/10">
+        <Tabs.Content value="list" className="flex-1 flex flex-col">
+          <div className="flex-1 h-[calc(100vh-120px)] overflow-y-auto block min-h-[200px] w-full bg-red-500/10">
+            {/* 调试点亮测试 */}
+            <div className="bg-yellow-500 text-black p-2">列表组件已加载，数量：{footprints.length}</div>
             {/* 强制显示测试 */}
             <p className="text-white p-4">列表测试：{footprints.length}</p>
             <div className="p-4 pb-2">
@@ -188,7 +190,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.Content>
 
         {/* 数据统计 */}
-        <Tabs.Content value="stats" className="flex-1 overflow-y-auto">
+        <Tabs.Content value="stats" className="flex-1 flex flex-col">
           <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
       </Tabs.Root>
