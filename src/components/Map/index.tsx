@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents, LayersControl, Polyline } from 'react-leaflet';
 import { Footprint } from '../../types';
 import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
+import { getMultiPointWalkingRoute, formatDistance as formatOSRMDistance, formatTime } from '../../utils/osrm';
 import { MapPin } from 'lucide-react';
 
 interface MapProps {
@@ -14,6 +15,11 @@ interface MapProps {
   selectedFootprintId?: string;
   selectedFootprints?: Footprint[];
   onRoutePlanChange?: (footprints: Footprint[]) => void;
+  onWalkingRouteChange?: (route: {
+    path: [number, number][];
+    distance: number;
+    duration: number;
+  } | null) => void;
 }
 
 interface MapViewProps {
@@ -119,7 +125,8 @@ const Map: React.FC<MapProps> = ({
   onMapClick,
   selectedFootprintId,
   selectedFootprints = [],
-  onRoutePlanChange
+  onRoutePlanChange,
+  onWalkingRouteChange
 }) => {
   if (typeof window === 'undefined') {
     return (
@@ -158,6 +165,13 @@ const Map: React.FC<MapProps> = ({
   const [loadError, setLoadError] = useState<string | null>(null);
   // 添加状态来控制自定义详情面板
   const [targetFootprint, setTargetFootprint] = useState<Footprint | null>(null);
+  // OSRM路由相关状态
+  const [walkingRoute, setWalkingRoute] = useState<{
+    path: [number, number][];
+    distance: number;
+    duration: number;
+  } | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -234,14 +248,49 @@ const Map: React.FC<MapProps> = ({
     }
   }, [selectedFootprintId, footprints, isClient, L, zoom]);
 
-  // 当选中足迹变化时，自动缩放地图以显示所有选中的足迹
+  // 当选中足迹变化时，计算OSRM步行路线
+  useEffect(() => {
+    const calculateRoute = async () => {
+      if (selectedFootprints.length < 2) {
+        setWalkingRoute(null);
+        onWalkingRouteChange?.(null);
+        return;
+      }
+      
+      setRouteLoading(true);
+      
+      try {
+        const coordinates = selectedFootprints.map(fp => fp.coordinates);
+        const route = await getMultiPointWalkingRoute(coordinates);
+        setWalkingRoute(route);
+        onWalkingRouteChange?.(route);
+      } catch (error) {
+        console.error('Error calculating walking route:', error);
+        setWalkingRoute(null);
+        onWalkingRouteChange?.(null);
+      } finally {
+        setRouteLoading(false);
+      }
+    };
+    
+    calculateRoute();
+  }, [selectedFootprints, onWalkingRouteChange]);
+
+  // 当选中足迹或路线变化时，自动缩放地图以显示所有选中的足迹或完整路线
   useEffect(() => {
     if (isClient && mapRef.current && selectedFootprints.length > 1) {
       try {
-        // 收集所有选中足迹的坐标
-        const coordinates = selectedFootprints.map(fp => fp.coordinates);
+        let coordinates: [number, number][];
         
-        // 使用fitBounds自动缩放地图以显示所有选中的足迹
+        if (walkingRoute?.path) {
+          // 如果有OSRM路线，使用路线的所有坐标
+          coordinates = walkingRoute.path;
+        } else {
+          // 否则，使用选中足迹的坐标
+          coordinates = selectedFootprints.map(fp => fp.coordinates);
+        }
+        
+        // 使用fitBounds自动缩放地图以显示所有选中的足迹或完整路线
         mapRef.current.fitBounds(coordinates, {
           padding: [50, 50],
           animate: true,
@@ -251,7 +300,7 @@ const Map: React.FC<MapProps> = ({
         console.error('Failed to fit bounds:', error);
       }
     }
-  }, [selectedFootprints, isClient]);
+  }, [selectedFootprints, walkingRoute, isClient]);
 
   if (loadError) {
     return (
@@ -327,16 +376,18 @@ const Map: React.FC<MapProps> = ({
           </LayersControl.BaseLayer>
         </LayersControl>
         
-        {/* 路线连线 */}
+        {/* 路线连线 - 使用OSRM真实路径或降级为直线 */}
         {selectedFootprints.length > 1 && (
           <Polyline
-            positions={selectedFootprints.map(fp => fp.coordinates)}
+            positions={walkingRoute?.path || selectedFootprints.map(fp => fp.coordinates)}
             color="#3b82f6"
-            weight={4}
-            opacity={0.9}
+            weight={5}
+            opacity={0.8}
             lineCap="round"
             lineJoin="round"
-            dashArray=""
+            dashArray="10, 5"
+            // 添加流动蚂蚁线动画效果
+            className="animate-dash"
           />
         )}
         
@@ -426,6 +477,18 @@ const Map: React.FC<MapProps> = ({
               opacity: 1;
               transform: translate(0, 0);
             }
+          }
+          
+          /* 流动蚂蚁线动画 */
+          @keyframes dash {
+            to {
+              stroke-dashoffset: -15;
+            }
+          }
+          
+          .animate-dash {
+            stroke-dasharray: 10, 5;
+            animation: dash 1s linear infinite;
           }
           
           @media (max-width: 640px) {

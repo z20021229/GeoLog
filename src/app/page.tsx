@@ -25,6 +25,11 @@ const Home: React.FC = () => {
   
   // 路线规划相关状态
   const [selectedFootprints, setSelectedFootprints] = useState<Footprint[]>([]);
+  const [walkingRoute, setWalkingRoute] = useState<{
+    path: [number, number][];
+    distance: number;
+    duration: number;
+  } | null>(null);
   
   // 添加足迹弹窗相关状态
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -53,6 +58,15 @@ const Home: React.FC = () => {
     setSelectedFootprints(footprints);
   };
 
+  // 处理OSRM路线变化
+  const handleWalkingRouteChange = (route: {
+    path: [number, number][];
+    distance: number;
+    duration: number;
+  } | null) => {
+    setWalkingRoute(route);
+  };
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
@@ -66,6 +80,7 @@ const Home: React.FC = () => {
         onImportData={handleImportData}
         selectedFootprints={selectedFootprints}
         onRoutePlanChange={handleRoutePlanChange}
+        walkingRoute={walkingRoute}
       />
       
       {/* Main Content - Map */}
@@ -80,6 +95,7 @@ const Home: React.FC = () => {
               selectedFootprintId={selectedFootprintId}
               selectedFootprints={selectedFootprints}
               onRoutePlanChange={handleRoutePlanChange}
+              onWalkingRouteChange={handleWalkingRouteChange}
             />
           </Suspense>
         </div>

@@ -5,6 +5,7 @@ import { Menu, X, Download, Upload, List, BarChart3, MapPin, Route, Plus, Save }
 import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint } from '../../types';
 import { calculateTotalDistance, formatDistance } from '../../utils/distance';
+import { formatOSRMDistance, formatTime } from '../../utils/osrm';
 import StatisticsPanel from './StatisticsPanel';
 import FootprintList from './FootprintList';
 
@@ -18,6 +19,11 @@ interface SidebarProps {
   onImportData: (file: File) => void;
   onRoutePlanChange?: (selectedFootprints: Footprint[]) => void;
   selectedFootprints?: Footprint[];
+  walkingRoute?: {
+    path: [number, number][];
+    distance: number;
+    duration: number;
+  } | null;
   onSaveRoute?: () => void;
 }
 
@@ -31,6 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onImportData,
   onRoutePlanChange,
   selectedFootprints = [],
+  walkingRoute = null,
   onSaveRoute
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,7 +146,19 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* 路线信息显示 */}
           {isRoutePlanning && selectedFootprints.length > 0 && (
             <div className="mt-2 text-center text-sm text-muted-foreground">
-              已选 {selectedFootprints.length} 个点，总长 {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}km
+              已选 {selectedFootprints.length} 个点
+              {walkingRoute ? (
+                <>
+                  <br />
+                  <span className="block">预计步行距离: {formatOSRMDistance(walkingRoute.distance)}</span>
+                  <span className="block">预计耗时: {formatTime(walkingRoute.duration)}</span>
+                </>
+              ) : selectedFootprints.length > 1 ? (
+                <>
+                  <br />
+                  <span className="block">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</span>
+                </>
+              ) : null}
             </div>
           )}
         </div>
