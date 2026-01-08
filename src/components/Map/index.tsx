@@ -24,7 +24,6 @@ interface MapEventsProps {
   setTempMarker: (marker: [number, number] | null) => void;
 }
 
-// 地图视图控制器组件
 const MapView: React.FC<MapViewProps> = ({ center, zoom }) => {
   const map = useMap();
   
@@ -44,7 +43,6 @@ const MapView: React.FC<MapViewProps> = ({ center, zoom }) => {
   return null;
 };
 
-// 地图点击事件处理组件
 const MapEvents: React.FC<MapEventsProps> = ({ onMapClick, tempMarker, setTempMarker }) => {
   useMapEvents({
     click: (e) => {
@@ -66,7 +64,6 @@ const MapEvents: React.FC<MapEventsProps> = ({ onMapClick, tempMarker, setTempMa
   return null;
 };
 
-// 创建临时 Marker 图标的工厂函数
 const createTemporaryIcon = (L: any) => {
   const color = '#ec4899';
   const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
@@ -80,7 +77,6 @@ const createTemporaryIcon = (L: any) => {
   });
 };
 
-// 创建自定义 Marker 图标的工厂函数
 const createCustomIcon = (L: any, category: string) => {
   const colors: Record<string, string> = {
     '探店': '#ef4444',
@@ -108,7 +104,6 @@ const Map: React.FC<MapProps> = ({
   onMapClick,
   selectedFootprintId 
 }) => {
-  // 确保只在客户端执行
   if (typeof window === 'undefined') {
     return (
       <div className="w-full h-full bg-slate-900 flex items-center justify-center">
@@ -120,7 +115,6 @@ const Map: React.FC<MapProps> = ({
     );
   }
 
-  // 动态加载本地 Leaflet CSS
   useEffect(() => {
     if (typeof window !== 'undefined' && !document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
@@ -146,7 +140,6 @@ const Map: React.FC<MapProps> = ({
   const [isMapReady, setIsMapReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // 添加错误监听
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       console.error('Window error:', event.error);
@@ -161,11 +154,9 @@ const Map: React.FC<MapProps> = ({
     };
   }, []);
 
-  // 检查浏览器兼容性
   useEffect(() => {
     const supports = checkBrowserSupport();
     
-    // 检查必要的支持
     const requiredSupports = Object.values(supports);
     if (requiredSupports.some(support => !support)) {
       const missingFeatures = Object.entries(supports)
@@ -180,20 +171,16 @@ const Map: React.FC<MapProps> = ({
     }
   }, []);
 
-  // 动态加载 Leaflet
   useEffect(() => {
     const loadLeaflet = async () => {
       try {
-        // 等待 DOM 加载完成
         if (document.readyState !== 'complete') {
           await new Promise(resolve => window.addEventListener('load', resolve));
         }
         
-        // 动态导入 Leaflet
         const leaflet = await import('leaflet');
         setL(leaflet.default);
         
-        // 延迟一点确保地图准备就绪
         setTimeout(() => {
           setIsMapReady(true);
         }, 500);
@@ -208,7 +195,6 @@ const Map: React.FC<MapProps> = ({
     loadLeaflet();
   }, []);
 
-  // 处理弹窗打开
   useEffect(() => {
     if (isClient && mapRef.current && selectedFootprintId && L) {
       const selectedFootprint = footprints.find(fp => fp.id === selectedFootprintId);
@@ -232,7 +218,6 @@ const Map: React.FC<MapProps> = ({
     }
   }, [selectedFootprintId, footprints, isClient, L]);
 
-  // 显示错误信息
   if (loadError) {
     return (
       <div className="w-full h-full bg-slate-900 flex items-center justify-center p-6">
@@ -251,7 +236,6 @@ const Map: React.FC<MapProps> = ({
     );
   }
 
-  // 显示加载状态
   if (!isMapReady || !L) {
     return (
       <div className="w-full h-full bg-slate-900 flex flex-col items-center justify-center">
@@ -280,7 +264,6 @@ const Map: React.FC<MapProps> = ({
           setIsMapReady(true);
         }}
       >
-        {/* CartoDB Dark Matter Tile Layer */}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -293,7 +276,6 @@ const Map: React.FC<MapProps> = ({
           setTempMarker={setTempMarker}
         />
         
-        {/* 渲染所有足迹的 Marker */}
         {footprints.map((footprint) => (
           <Marker 
             key={footprint.id} 
@@ -301,23 +283,23 @@ const Map: React.FC<MapProps> = ({
             icon={createCustomIcon(L, footprint.category)}
           >
             <Popup>
-              <div className="p-2 min-w-[200px]">
+              <div className="w-[250px]">
                 {footprint.image && (
-                  <div className="mb-2">
-                    <img
-                      src={footprint.image}
-                      alt={footprint.name}
-                      className="w-full h-48 object-cover rounded-md"
-                    />
-                  </div>
+                  <img
+                    src={footprint.image}
+                    alt={footprint.name}
+                    className="w-full h-auto rounded-t-lg mb-2"
+                  />
                 )}
-                <h3 className="font-bold text-lg">{footprint.name}</h3>
-                <p className="text-sm text-muted-foreground mb-2">{footprint.location}</p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                <h3 className="font-bold text-base">{footprint.name}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{footprint.location}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                   <span className="bg-accent px-2 py-0.5 rounded-full">{footprint.category}</span>
                   <span>{footprint.date}</span>
                 </div>
-                <p className="text-sm">{footprint.description || '暂无描述'}</p>
+                {footprint.description && (
+                  <p className="text-sm mt-2 leading-relaxed">{footprint.description}</p>
+                )}
               </div>
             </Popup>
           </Marker>
