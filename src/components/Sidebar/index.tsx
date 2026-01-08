@@ -130,7 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className="flex-1 flex flex-col">
-        <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="flex-1 flex flex-col">
+        <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
           <Tabs.List className="flex border-b border-border">
             <Tabs.Trigger
               value="list"
@@ -173,8 +173,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          {/* 足迹列表：使用正常布局 */}
-          <Tabs.Content value="list" className="flex-1 overflow-y-auto scrollbar-thin p-4">
+          {/* 足迹列表：使用正确的滚动布局 */}
+          <Tabs.Content value="list" className="flex-1 min-h-0 overflow-y-auto p-4">
             <FootprintList 
               footprints={footprints} 
               selectedFootprintId={selectedFootprintId} 
@@ -185,8 +185,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             />
           </Tabs.Content>
 
-          {/* 数据统计：使用正常布局 */}
-          <Tabs.Content value="statistics" className="flex-1 overflow-y-auto scrollbar-thin p-4">
+          {/* 数据统计：使用正确的滚动布局 */}
+          <Tabs.Content value="statistics" className="flex-1 min-h-0 overflow-y-auto p-4">
             <StatisticsPanel footprints={footprints} />
           </Tabs.Content>
         </Tabs.Root>

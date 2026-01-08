@@ -222,7 +222,7 @@ const FootprintList: React.FC<FootprintListProps> = ({
   );
 
   return (
-    <div className="overflow-y-auto p-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-700">
+    <div>
       
       {/* 搜索框 */}
       <div className="mb-4">
