@@ -82,3 +82,22 @@
 .leaflet-container {
   @apply rounded-md;
 }
+
+/* 强制让气泡在所有图层之上可见 */
+.leaflet-popup {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 100000 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #000000 !important; /* 纯黑背景，确保对比度 */
+  color: #ffffff !important;
+  border: 2px solid #fbbf24 !important; /* 金色边框，一眼就能看到 */
+  box-shadow: 0 0 20px rgba(0,0,0,0.8) !important;
+}
+
+.leaflet-popup-tip {
+  background: #000000 !important;
+}

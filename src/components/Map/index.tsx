@@ -330,7 +330,7 @@ const Map: React.FC<MapProps> = ({
           >
             <Popup 
               className="ultra-compact-popup custom-popup"
-              offset={[0, -15]}
+              offset={[0, -20]}
               closeButton={false}
               autoPan={true}
               autoPanPadding={[100, 100]}
@@ -359,7 +359,7 @@ const Map: React.FC<MapProps> = ({
           <Marker position={tempMarker} icon={createTemporaryIcon(L)}>
             <Popup 
               className="ultra-compact-popup custom-popup"
-              offset={[0, -15]}
+              offset={[0, -20]}
               closeButton={false}
               autoPan={true}
               autoPanPadding={[100, 100]}
