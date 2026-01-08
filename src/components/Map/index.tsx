@@ -285,30 +285,28 @@ const Map: React.FC<MapProps> = ({
       >
         <LayersControl>
           {/* 底图层 */}
-          <LayersControl.BaseLayer checked name="标准暗色">
+          <LayersControl.BaseLayer checked name="暗黑模式 (CartoDB)">
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               subdomains={['a', 'b', 'c', 'd']}
+              maxZoom={18}
             />
           </LayersControl.BaseLayer>
           
-          <LayersControl.BaseLayer name="卫星地图">
+          <LayersControl.BaseLayer name="卫星影像 (Esri)">
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-            />
-            {/* 街道注记层 (Hybrid 模式) */}
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-              attribution='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+              maxZoom={18}
             />
           </LayersControl.BaseLayer>
           
-          <LayersControl.BaseLayer name="标准街道">
+          <LayersControl.BaseLayer name="混合视图 (Google)">
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+              attribution='&copy; Google Maps'
+              maxZoom={18}
             />
           </LayersControl.BaseLayer>
         </LayersControl>
