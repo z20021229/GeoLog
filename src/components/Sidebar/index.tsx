@@ -42,6 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isRoutePlanning, setIsRoutePlanning] = useState(false);
+  const [activeTab, setActiveTab] = useState('list');
 
   const handleExportClick = () => {
     onExportData();
@@ -105,6 +106,19 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <div className="bg-card border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-64 flex flex-col relative">
+      {/* 添加统计面板样式 */}
+      <style jsx>{`
+        /* 给统计面板增加明显的视觉区分 */
+        .route-stats-container {
+          background: rgba(59, 130, 246, 0.1); /* 淡淡的蓝色背景 */
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          border-radius: 8px;
+          padding: 12px;
+          margin: 10px;
+          color: #60a5fa; /* 天蓝色字体 */
+          font-size: 0.875rem;
+        }
+      `}</style>
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h1 className="text-xl font-bold">GeoLog</h1>
         <button
@@ -115,74 +129,69 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      <Tabs.Root defaultValue="list" className="relative flex-1">
-        <Tabs.List className="flex border-b border-border">
-          <Tabs.Trigger
-            value="list"
-            className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
-          >
-            <List size={16} />
-            足迹列表
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="statistics"
-            className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
-          >
-            <BarChart3 size={16} />
-            数据统计
-          </Tabs.Trigger>
-        </Tabs.List>
+      <div className="flex-1 flex flex-col">
+        <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <Tabs.List className="flex border-b border-border">
+            <Tabs.Trigger
+              value="list"
+              className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
+            >
+              <List size={16} />
+              足迹列表
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="statistics"
+              className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
+            >
+              <BarChart3 size={16} />
+              数据统计
+            </Tabs.Trigger>
+          </Tabs.List>
 
-        {/* 路线规划按钮 */}
-        <div className="p-4 border-b border-border">
-          <button
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${isRoutePlanning ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'} w-full justify-center`}
-            onClick={handleRoutePlanToggle}
-          >
-            <Route size={16} />
-            {isRoutePlanning ? '退出路线规划' : '规划路线'}
-          </button>
-          
-          {/* 路线信息显示 */}
+          {/* 路线规划按钮 */}
+          <div className="p-4 border-b border-border">
+            <button
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${isRoutePlanning ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'} w-full justify-center`}
+              onClick={handleRoutePlanToggle}
+            >
+              <Route size={16} />
+              {isRoutePlanning ? '退出路线规划' : '规划路线'}
+            </button>
+          </div>
+
+          {/* 路线统计面板 */}
           {isRoutePlanning && selectedFootprints.length > 0 && (
-            <div className="mt-2 text-center text-sm text-muted-foreground">
-              已选 {selectedFootprints.length} 个点
+            <div className="route-stats-container">
+              <p className="text-center">已选 {selectedFootprints.length} 个点</p>
               {walkingRoute ? (
-                <>
-                  <br />
-                  <span className="block">预计步行距离: {formatOSRMDistance(walkingRoute.distance)}</span>
-                  <span className="block">预计耗时: {formatTime(walkingRoute.duration)}</span>
-                </>
+                <div className="mt-2">
+                  <p className="text-center">预计步行距离: {formatOSRMDistance(walkingRoute.distance)}</p>
+                  <p className="text-center">预计耗时: {formatTime(walkingRoute.duration / 60)}</p>
+                </div>
               ) : selectedFootprints.length > 1 ? (
-                <>
-                  <br />
-                  <span className="block">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</span>
-                </>
+                <p className="text-center mt-2">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</p>
               ) : null}
             </div>
           )}
-        </div>
 
-        {/* 足迹列表：使用绝对定位方案 */}
-        <Tabs.Content value="list" className="absolute top-[96px] bottom-[60px] left-0 right-0 m-0 p-0 data-[state=inactive]:hidden flex flex-col">
-          {/* 列表滚动区域：直接作为Tabs.Content的子元素，平滑贴合在Tab下方 */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
-              <FootprintList 
-                footprints={footprints} 
-                selectedFootprintId={selectedFootprintId} 
-                onSelectFootprint={onSelectFootprint} 
-                isRoutePlanning={isRoutePlanning}
-                selectedFootprints={selectedFootprints}
-                onRoutePlanChange={onRoutePlanChange}
-              />
-          </div>
-        </Tabs.Content>
+          {/* 足迹列表：使用正常布局 */}
+          <Tabs.Content value="list" className="flex-1 overflow-y-auto scrollbar-thin p-4">
+            <FootprintList 
+              footprints={footprints} 
+              selectedFootprintId={selectedFootprintId} 
+              onSelectFootprint={onSelectFootprint} 
+              isRoutePlanning={isRoutePlanning}
+              selectedFootprints={selectedFootprints}
+              onRoutePlanChange={onRoutePlanChange}
+            />
+          </Tabs.Content>
 
-        {/* 数据统计：使用绝对定位方案 */}
-        <Tabs.Content value="statistics" className="absolute top-[48px] bottom-[60px] left-0 right-0 m-0 p-0 data-[state=inactive]:hidden flex flex-col">
-          <StatisticsPanel footprints={footprints} />
-        </Tabs.Content>
-      </Tabs.Root>
+          {/* 数据统计：使用正常布局 */}
+          <Tabs.Content value="statistics" className="flex-1 overflow-y-auto scrollbar-thin p-4">
+            <StatisticsPanel footprints={footprints} />
+          </Tabs.Content>
+        </Tabs.Root>
+      </div>
 
       <div className="mt-auto p-4 border-t border-border">
         <div className="flex gap-2">
