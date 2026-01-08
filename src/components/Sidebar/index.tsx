@@ -113,32 +113,36 @@ const Sidebar: React.FC<SidebarProps> = ({
           </Tabs.Trigger>
         </Tabs.List>
 
-        {/* 足迹列表 - 使用block布局，防止高度塌陷 */}
+        {/* 足迹列表 - 三步强力修复 */}
         <Tabs.Content value="list" className="h-full overflow-y-auto m-0 p-0">
-          <div className="p-4 pb-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-              <input
-                type="text"
-                placeholder="搜索足迹..."
-                className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="px-4 pb-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              你已在地图上留下了 {filteredFootprints.length} 个足迹
-            </p>
-            {console.log('Current footprints:', footprints)}
-            {filteredFootprints.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                <p>暂无足迹，点击地图添加第一个足迹吧！</p>
+          <div className="min-h-[200px] w-full bg-red-500/10">
+            <div className="p-4 pb-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                <input
+                  type="text"
+                  placeholder="搜索足迹..."
+                  className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-            ) : (
-              <div className="space-y-2">
+            </div>
+
+            <div className="px-4 pb-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                你已在地图上留下了 {filteredFootprints.length} 个足迹
+              </p>
+              
+              {/* 1. 强制渲染测试：显示暂无数据提示 */}
+              {filteredFootprints.length === 0 && (
+                <div className="bg-yellow-500/10 p-4 rounded-md text-center">
+                  暂无足迹数据
+                </div>
+              )}
+              
+              {/* 2. 渲染足迹列表 */}
+              <div className="space-y-2 mt-4">
                 {filteredFootprints.map((footprint) => (
                   <div
                     key={footprint.id}
@@ -177,11 +181,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 ))}
               </div>
-            )}
+            </div>
           </div>
         </Tabs.Content>
 
-        {/* 数据统计 - 保持block布局 */}
+        {/* 数据统计 */}
         <Tabs.Content value="stats" className="h-full overflow-y-auto m-0 p-0">
           <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
