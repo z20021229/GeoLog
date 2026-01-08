@@ -9,8 +9,6 @@ interface NetworkMonitorProps {
 
 const NetworkMonitor: React.FC<NetworkMonitorProps> = ({ children }) => {
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  const [resourceTimeout, setResourceTimeout] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // 监测网络状态
   useEffect(() => {
@@ -24,25 +22,13 @@ const NetworkMonitor: React.FC<NetworkMonitorProps> = ({ children }) => {
       showError('网络连接已断开，部分功能可能不可用');
     };
 
+    // 仅监听真实的网络状态变化
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
-    // 设置资源加载超时检测
-    const timeoutId = setTimeout(() => {
-      setResourceTimeout(true);
-      showError('资源加载超时，请检查网络连接或稍后再试');
-    }, 10000);
-
-    // 模拟资源加载完成
-    const loadCompleteId = setTimeout(() => {
-      setIsLoading(false);
-    }, 5000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      clearTimeout(timeoutId);
-      clearTimeout(loadCompleteId);
     };
   }, []);
 

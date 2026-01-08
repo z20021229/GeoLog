@@ -13,8 +13,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Footprint } from '../../types';
-import { getCategoryStats, getCityStats, getOverviewStats } from '../../utils/stats';
-import { BarChart3, MapPin, Calendar, Clock } from 'lucide-react';
+import { getCategoryStats, getCityStats, getOverviewStats, generateAISummary } from '../../utils/stats';
+import { BarChart3, MapPin, Calendar, Clock, Sparkles } from 'lucide-react';
 
 interface StatisticsPanelProps {
   footprints: Footprint[];
@@ -24,6 +24,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ footprints }) => {
   const categoryStats = getCategoryStats(footprints);
   const cityStats = getCityStats(footprints);
   const overviewStats = getOverviewStats(footprints);
+  const aiSummary = generateAISummary(footprints);
 
   if (footprints.length === 0) {
     return (
@@ -40,28 +41,28 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ footprints }) => {
       <h2 className="text-lg font-semibold">数据统计</h2>
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="bg-accent/50 rounded-lg p-3 text-center">
+        <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg p-3 text-center border border-blue-500/30">
           <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
             <MapPin size={14} />
             <span className="text-xs">足迹数</span>
           </div>
           <p className="text-2xl font-bold">{overviewStats.totalFootprints}</p>
         </div>
-        <div className="bg-accent/50 rounded-lg p-3 text-center">
+        <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg p-3 text-center border border-green-500/30">
           <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
             <MapPin size={14} />
             <span className="text-xs">城市</span>
           </div>
           <p className="text-2xl font-bold">{overviewStats.cityCount}</p>
         </div>
-        <div className="bg-accent/50 rounded-lg p-3 text-center">
+        <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-lg p-3 text-center border border-amber-500/30">
           <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
             <Calendar size={14} />
             <span className="text-xs">最早</span>
           </div>
           <p className="text-sm font-medium">{overviewStats.earliestDate}</p>
         </div>
-        <div className="bg-accent/50 rounded-lg p-3 text-center">
+        <div className="bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-lg p-3 text-center border border-pink-500/30">
           <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
             <Clock size={14} />
             <span className="text-xs">最近</span>
@@ -149,6 +150,16 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ footprints }) => {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-lg p-4 border border-purple-500/30">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles size={16} className="text-purple-400" />
+          <h3 className="text-sm font-medium">{aiSummary.title}</h3>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {aiSummary.content}
+        </p>
       </div>
     </div>
   );
