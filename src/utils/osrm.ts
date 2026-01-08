@@ -77,12 +77,21 @@ export const formatOSRMDistance = (distance: number): string => {
 };
 
 /**
- * 格式化时间，转换为分钟
+ * 格式化时间，转换为小时和分钟
  * @param seconds 时间（秒）
- * @returns 格式化后的时间字符串
+ * @returns 格式化后的时间字符串，格式为'X小时X分钟'或'X分钟'
  */
 export const formatTime = (seconds: number): string => {
-  const minutes = Math.round(seconds / 60);
+  const totalMinutes = Math.round(seconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  
+  if (hours > 0) {
+    if (minutes > 0) {
+      return `${hours}小时${minutes}分钟`;
+    }
+    return `${hours}小时`;
+  }
   return `${minutes}分钟`;
 };
 

@@ -166,7 +166,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               {walkingRoute ? (
                 <div className="mt-2">
                   <p className="text-center">预计步行距离: {formatOSRMDistance(walkingRoute.distance)}</p>
-                  <p className="text-center">预计耗时: {formatTime(walkingRoute.duration / 60)}</p>
+                  <p className="text-center">预计耗时: {formatTime(walkingRoute.duration)}</p>
                 </div>
               ) : selectedFootprints.length > 1 ? (
                 <p className="text-center mt-2">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</p>

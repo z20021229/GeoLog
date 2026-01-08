@@ -176,12 +176,12 @@ const FootprintList: React.FC<FootprintListProps> = ({
           className={`p-3 rounded-md cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : isFootprintSelected(footprint) ? 'bg-primary/10 border-l-4 border-primary' : 'bg-background hover:bg-accent'}`}
           onClick={() => handleFootprintSelect(footprint)}
         >
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {footprint.image && (
               <img
                 src={footprint.image}
                 alt={footprint.name}
-                className="w-full h-24 object-cover rounded-md"
+                className={`w-full object-cover rounded-md ${isRoutePlanning ? 'h-12' : 'h-24'}`}
               />
             )}
             <div className="flex items-start gap-3">
@@ -222,7 +222,7 @@ const FootprintList: React.FC<FootprintListProps> = ({
   );
 
   return (
-    <div className="h-full overflow-y-auto p-4">
+    <div className="flex-1 overflow-y-auto p-4 scrollbar scrollbar-track-gray-200 scrollbar-thumb-gray-400 hover:scrollbar-thumb-gray-500">
       
       {/* 搜索框 */}
       <div className="mb-4">
