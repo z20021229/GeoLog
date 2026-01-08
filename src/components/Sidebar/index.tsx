@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { Search, Menu, X, MapPin, Calendar, ChevronRight, Download, Upload, List, BarChart3 } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Menu, X, Download, Upload, List, BarChart3 } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint } from '../../types';
-import { formatDate } from '../../utils/markerUtils';
 import StatisticsPanel from './StatisticsPanel';
+import FootprintList from './FootprintList';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -26,14 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onExportData,
   onImportData
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const filteredFootprints = footprints.filter((footprint) =>
-    footprint.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    footprint.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    footprint.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const handleExportClick = () => {
     onExportData();
@@ -105,7 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             足迹列表
           </Tabs.Trigger>
           <Tabs.Trigger
-            value="stats"
+            value="statistics"
             className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
           >
             <BarChart3 size={16} />
@@ -114,91 +107,23 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.List>
 
         {/* 足迹列表 */}
-        <Tabs.Content 
-          value="list" 
-          className="flex-1 flex flex-col min-h-0 overflow-hidden"
-          style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
-        >
-          {/* 调试代码插桩：检测展开状态 */}
-          <div className='bg-blue-500 text-white p-2'>检测到展开状态，正在渲染列表...</div>
-          
-          {/* FootprintList组件 */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="p-4 pb-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-                <input
-                  type="text"
-                  placeholder="搜索足迹..."
-                  className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="px-4 pb-4">
-              <p className="text-sm text-muted-foreground mb-4">
-                你已在地图上留下了 {filteredFootprints.length} 个足迹
-              </p>
-              
-              {/* 显示暂无数据提示 */}
-              {filteredFootprints.length === 0 && (
-                <div className="bg-yellow-500/10 p-4 rounded-md text-center">
-                  暂无足迹数据
-                </div>
-              )}
-              
-              {/* 物理证据测试：强行写死的调试信息 */}
-              <div style={{color: 'red', background: 'white'}}>调试：当前有 {footprints.length} 条数据</div>
-              
-              {/* 渲染足迹列表 */}
-              <div className="space-y-2 mt-4">
-                {filteredFootprints.map((footprint) => (
-                  <div
-                    key={footprint.id}
-                    className={`p-3 rounded-md cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent'}`}
-                    onClick={() => onSelectFootprint(footprint)}
-                  >
-                    <div className="flex flex-col gap-3">
-                      {footprint.image && (
-                        <img
-                          src={footprint.image}
-                          alt={footprint.name}
-                          className="w-full h-24 object-cover rounded-md"
-                        />
-                      )}
-                      <div className="flex items-start gap-3">
-                        <MapPin className="mt-1 flex-shrink-0" size={18} />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{footprint.name}</h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                            <span className="truncate">{footprint.location}</span>
-                            <Calendar size={14} />
-                            <span>{formatDate(footprint.date)}</span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${footprint.category === '探店' ? 'bg-red-500/20 text-red-300' : 
-                                                           footprint.category === '户外' ? 'bg-green-500/20 text-green-300' : 
-                                                           footprint.category === '城市' ? 'bg-blue-500/20 text-blue-300' : 
-                                                           'bg-orange-500/20 text-orange-300'}`}>
-                              {footprint.category}
-                            </span>
-                          </div>
-                        </div>
-                        <ChevronRight size={16} className="mt-1 text-muted-foreground" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <Tabs.Content value="list" className="h-full w-full p-0 m-0 data-[state=inactive]:hidden">
+          {/* 这里的容器必须是 flex，确保 List 能撑开 */}
+          <div className="flex flex-col h-full w-full overflow-hidden">
+            <FootprintList 
+              footprints={footprints} 
+              selectedFootprintId={selectedFootprintId} 
+              onSelectFootprint={onSelectFootprint} 
+            />
           </div>
         </Tabs.Content>
 
         {/* 数据统计 */}
-        <Tabs.Content value="stats" className="block h-full overflow-hidden">
-          <StatisticsPanel footprints={footprints} />
+        <Tabs.Content value="statistics" className="h-full w-full p-0 m-0 data-[state=inactive]:hidden">
+          {/* 这里的容器维持 block，确保吸顶 */}
+          <div className="block h-full w-full overflow-y-auto">
+            <StatisticsPanel footprints={footprints} />
+          </div>
         </Tabs.Content>
       </Tabs.Root>
 
