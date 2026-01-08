@@ -336,8 +336,12 @@ const Map: React.FC<MapProps> = ({
         {targetFootprint && (
           <div 
             id="custom-info-box"
-            className="fixed bottom-4 right-4 z-[99999] bg-slate-900 p-4 rounded-lg shadow-2xl border border-slate-700"
-            style={{ minWidth: '200px', maxWidth: '300px' }}
+            className="fixed bottom-4 right-4 z-[99999] bg-slate-900/80 backdrop-blur-md p-4 rounded-lg shadow-2xl border border-white/10 transition-all duration-300 ease-in-out opacity-0 transform translate-y-4 animate-fade-in"
+            style={{ 
+              minWidth: '200px', 
+              maxWidth: '300px',
+              animation: 'fadeIn 0.3s ease-in-out forwards'
+            }}
           >
             <h3 className="font-bold text-white text-sm mb-2 truncate">{targetFootprint.name}</h3>
             <p className="text-xs text-gray-400 mb-2">{targetFootprint.location}</p>
@@ -350,12 +354,42 @@ const Map: React.FC<MapProps> = ({
             )}
             <button 
               onClick={() => setTargetFootprint(null)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-white text-xs"
+              className="absolute top-2 right-2 text-gray-500 hover:text-white text-xs transition-colors"
+              aria-label="关闭详情面板"
             >
               ✕
             </button>
           </div>
         )}
+        
+        {/* 移动端适配的底部横幅样式 */}
+        <style jsx global>{`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translate(0, 20px);
+            }
+            to {
+              opacity: 1;
+              transform: translate(0, 0);
+            }
+          }
+          
+          @media (max-width: 640px) {
+            #custom-info-box {
+              bottom: 0 !important;
+              right: 0 !important;
+              left: 0 !important;
+              min-width: auto !important;
+              max-width: none !important;
+              border-radius: 0 !important;
+              border-left: none !important;
+              border-right: none !important;
+              border-bottom: none !important;
+              animation: fadeIn 0.3s ease-in-out forwards;
+            }
+          }
+        `}</style>
       </MapContainer>
     </div>
   );
