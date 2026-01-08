@@ -322,11 +322,17 @@ const Map: React.FC<MapProps> = ({
             key={footprint.id} 
             position={footprint.coordinates} 
             icon={createCustomIcon(L, footprint.category)}
+            eventHandlers={{
+              click: () => {
+                console.log('Popup opened for:', footprint.name);
+              }
+            }}
           >
             <Popup 
               className="custom-popup"
-              offset={[0, -10]}
+              offset={[0, -5]}
               autoPanPadding={[50, 50]}
+              closeButton={false}
             >
               <div className="w-[220px]">
                 {footprint.image && (
@@ -350,7 +356,10 @@ const Map: React.FC<MapProps> = ({
         
         {tempMarker && (
           <Marker position={tempMarker} icon={createTemporaryIcon(L)}>
-            <Popup>
+            <Popup 
+              offset={[0, -5]}
+              closeButton={false}
+            >
               <div className="p-2">
                 <h3 className="font-bold">临时标记</h3>
                 <p>点击位置：{tempMarker[0].toFixed(6)}, {tempMarker[1].toFixed(6)}</p>
