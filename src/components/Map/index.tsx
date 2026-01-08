@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents, LayersControl, Polyline } from 'react-leaflet';
 import { Footprint } from '../../types';
 import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
 import { MapPin } from 'lucide-react';
@@ -12,6 +12,7 @@ interface MapProps {
   footprints: Footprint[];
   onMapClick: (latlng: [number, number]) => void;
   selectedFootprintId?: string;
+  selectedFootprints?: Footprint[];
 }
 
 interface MapViewProps {
@@ -115,7 +116,8 @@ const Map: React.FC<MapProps> = ({
   zoom = 10, 
   footprints, 
   onMapClick,
-  selectedFootprintId 
+  selectedFootprintId,
+  selectedFootprints = []
 }) => {
   if (typeof window === 'undefined') {
     return (
@@ -303,6 +305,19 @@ const Map: React.FC<MapProps> = ({
             />
           </LayersControl.BaseLayer>
         </LayersControl>
+        
+        {/* 路线连线 */}
+        {selectedFootprints.length > 1 && (
+          <Polyline
+            positions={selectedFootprints.map(fp => fp.coordinates)}
+            color="#ef4444"
+            weight={3}
+            opacity={0.8}
+            lineCap="round"
+            lineJoin="round"
+            dashArray=""
+          />
+        )}
         
         <MapEvents 
           onMapClick={onMapClick} 

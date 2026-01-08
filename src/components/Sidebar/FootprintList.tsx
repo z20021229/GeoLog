@@ -9,6 +9,9 @@ interface FootprintListProps {
   footprints: Footprint[];
   selectedFootprintId: string | undefined;
   onSelectFootprint: (footprint: Footprint) => void;
+  isRoutePlanning?: boolean;
+  selectedFootprints?: Footprint[];
+  onRoutePlanChange?: (selectedFootprints: Footprint[]) => void;
 }
 
 // 按年份和月份分组足迹
@@ -52,10 +55,40 @@ const getCategoryColor = (category: string) => {
 const FootprintList: React.FC<FootprintListProps> = ({ 
   footprints, 
   selectedFootprintId, 
-  onSelectFootprint 
+  onSelectFootprint,
+  isRoutePlanning = false,
+  selectedFootprints = [],
+  onRoutePlanChange
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
+
+  // 处理足迹选择
+  const handleFootprintSelect = (footprint: Footprint) => {
+    if (isRoutePlanning) {
+      // 路线规划模式下，处理多选
+      const isSelected = selectedFootprints.some(fp => fp.id === footprint.id);
+      let newSelectedFootprints: Footprint[];
+      
+      if (isSelected) {
+        // 取消选择
+        newSelectedFootprints = selectedFootprints.filter(fp => fp.id !== footprint.id);
+      } else {
+        // 添加选择
+        newSelectedFootprints = [...selectedFootprints, footprint];
+      }
+      
+      onRoutePlanChange?.(newSelectedFootprints);
+    } else {
+      // 常规模式下，处理单选
+      onSelectFootprint(footprint);
+    }
+  };
+
+  // 检查足迹是否被选中
+  const isFootprintSelected = (footprint: Footprint) => {
+    return selectedFootprints.some(fp => fp.id === footprint.id);
+  };
 
   const filteredFootprints = footprints.filter((footprint) =>
     footprint.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -80,7 +113,7 @@ const FootprintList: React.FC<FootprintListProps> = ({
                 <div 
                   key={footprint.id}
                   className={`flex gap-4 cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
-                  onClick={() => onSelectFootprint(footprint)}
+                  onClick={() => handleFootprintSelect(footprint)}
                 >
                   {/* 时间轴节点 */}
                   <div className="relative">
@@ -92,11 +125,22 @@ const FootprintList: React.FC<FootprintListProps> = ({
                   {/* 足迹卡片 */}
                   <div className="flex-1 bg-background rounded-md overflow-hidden shadow-sm border border-border hover:bg-accent transition-colors">
                     <div className="flex gap-3 p-3">
+                      {isRoutePlanning && (
+                        <input
+                          type="checkbox"
+                          checked={isFootprintSelected(footprint)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleFootprintSelect(footprint);
+                          }}
+                          className="mt-1 flex-shrink-0 h-4 w-4 text-primary focus:ring-primary border-input rounded"
+                        />
+                      )}
                       {footprint.image && (
                         <img
                           src={footprint.image}
                           alt={footprint.name}
-                          className="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                          className={`w-16 h-16 object-cover rounded-md flex-shrink-0 ${isRoutePlanning ? '' : 'ml-0'}`}
                         />
                       )}
                       <div className="flex-1 min-w-0">
@@ -127,7 +171,7 @@ const FootprintList: React.FC<FootprintListProps> = ({
         <div
           key={footprint.id}
           className={`p-3 rounded-md cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent'}`}
-          onClick={() => onSelectFootprint(footprint)}
+          onClick={() => handleFootprintSelect(footprint)}
         >
           <div className="flex flex-col gap-3">
             {footprint.image && (
@@ -138,7 +182,18 @@ const FootprintList: React.FC<FootprintListProps> = ({
               />
             )}
             <div className="flex items-start gap-3">
-              <MapPin className="mt-1 flex-shrink-0" size={18} />
+              {isRoutePlanning && (
+                <input
+                  type="checkbox"
+                  checked={isFootprintSelected(footprint)}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    handleFootprintSelect(footprint);
+                  }}
+                  className="mt-1 flex-shrink-0 h-4 w-4 text-primary focus:ring-primary border-input rounded"
+                />
+              )}
+              <MapPin className={`mt-1 flex-shrink-0 ${isRoutePlanning ? 'ml-0' : ''}`} size={18} />
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium truncate">{footprint.name}</h3>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">

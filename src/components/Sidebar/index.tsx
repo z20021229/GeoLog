@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { Menu, X, Download, Upload, List, BarChart3, MapPin } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Menu, X, Download, Upload, List, BarChart3, MapPin, Route, Plus, Save } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint } from '../../types';
 import StatisticsPanel from './StatisticsPanel';
@@ -15,6 +15,9 @@ interface SidebarProps {
   onSelectFootprint: (footprint: Footprint) => void;
   onExportData: () => void;
   onImportData: (file: File) => void;
+  onRoutePlanChange?: (selectedFootprints: Footprint[]) => void;
+  selectedFootprints?: Footprint[];
+  onSaveRoute?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -24,9 +27,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   selectedFootprintId, 
   onSelectFootprint,
   onExportData,
-  onImportData
+  onImportData,
+  onRoutePlanChange,
+  selectedFootprints = [],
+  onSaveRoute
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isRoutePlanning, setIsRoutePlanning] = useState(false);
 
   const handleExportClick = () => {
     onExportData();
@@ -44,6 +51,18 @@ const Sidebar: React.FC<SidebarProps> = ({
         fileInputRef.current.value = '';
       }
     }
+  };
+
+  const handleRoutePlanToggle = () => {
+    setIsRoutePlanning(!isRoutePlanning);
+    if (!isRoutePlanning) {
+      // 进入路线规划模式时，清空之前的选择
+      onRoutePlanChange?.([]);
+    }
+  };
+
+  const handleSaveRoute = () => {
+    onSaveRoute?.();
   };
 
   if (isCollapsed) {
@@ -106,14 +125,28 @@ const Sidebar: React.FC<SidebarProps> = ({
           </Tabs.Trigger>
         </Tabs.List>
 
+        {/* 路线规划按钮 */}
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <button
+            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${isRoutePlanning ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'}`}
+            onClick={handleRoutePlanToggle}
+          >
+            <Route size={16} />
+            {isRoutePlanning ? '退出路线规划' : '规划路线'}
+          </button>
+        </div>
+
         {/* 足迹列表：使用绝对定位方案 */}
-        <Tabs.Content value="list" className="absolute top-[48px] bottom-[60px] left-0 right-0 m-0 p-0 data-[state=inactive]:hidden flex flex-col">
+        <Tabs.Content value="list" className="absolute top-[96px] bottom-[60px] left-0 right-0 m-0 p-0 data-[state=inactive]:hidden flex flex-col">
           {/* 列表滚动区域：直接作为Tabs.Content的子元素，平滑贴合在Tab下方 */}
           <div className="flex-1 overflow-y-auto scrollbar-thin">
               <FootprintList 
                 footprints={footprints} 
                 selectedFootprintId={selectedFootprintId} 
                 onSelectFootprint={onSelectFootprint} 
+                isRoutePlanning={isRoutePlanning}
+                selectedFootprints={selectedFootprints}
+                onRoutePlanChange={onRoutePlanChange}
               />
           </div>
         </Tabs.Content>
