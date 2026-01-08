@@ -99,14 +99,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         <Tabs.List className="flex border-b border-border">
           <Tabs.Trigger
             value="list"
-            className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
           >
             <List size={16} />
             足迹列表
           </Tabs.Trigger>
           <Tabs.Trigger
             value="stats"
-            className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
           >
             <BarChart3 size={16} />
             数据统计
@@ -114,8 +114,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.List>
 
         {/* 足迹列表 */}
-        <Tabs.Content value="list" className="flex-1 h-full overflow-y-auto">
-          <div className="flex-1 h-full overflow-y-auto">
+        <Tabs.Content value="list" className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* 调试代码插桩：检测展开状态 */}
+          <div className='bg-blue-500 text-white p-2'>检测到展开状态，正在渲染列表...</div>
+          
+          {/* FootprintList组件 */}
+          <div className="flex-1 overflow-y-auto">
             <div className="p-4 pb-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
@@ -134,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 你已在地图上留下了 {filteredFootprints.length} 个足迹
               </p>
               
-              {/* 强制渲染测试：显示暂无数据提示 */}
+              {/* 显示暂无数据提示 */}
               {filteredFootprints.length === 0 && (
                 <div className="bg-yellow-500/10 p-4 rounded-md text-center">
                   暂无足迹数据
@@ -186,7 +190,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.Content>
 
         {/* 数据统计 */}
-        <Tabs.Content value="stats" className="flex-1 h-full overflow-y-auto">
+        <Tabs.Content value="stats" className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
       </Tabs.Root>
