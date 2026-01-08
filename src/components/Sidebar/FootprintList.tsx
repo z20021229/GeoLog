@@ -73,14 +73,17 @@ const FootprintList: React.FC<FootprintListProps> = ({
       if (isSelected) {
         // 取消选择
         newSelectedFootprints = selectedFootprints.filter(fp => fp.id !== footprint.id);
+        console.log('Deselecting point:', footprint.id, 'Name:', footprint.name);
       } else {
         // 添加选择
         newSelectedFootprints = [...selectedFootprints, footprint];
+        console.log('Selecting point:', footprint.id, 'Name:', footprint.name);
       }
       
       onRoutePlanChange?.(newSelectedFootprints);
     } else {
       // 常规模式下，处理单选
+      console.log('Selecting footprint:', footprint.id, 'Name:', footprint.name);
       onSelectFootprint(footprint);
     }
   };

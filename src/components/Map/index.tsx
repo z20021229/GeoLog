@@ -337,14 +337,6 @@ const Map: React.FC<MapProps> = ({
             lineCap="round"
             lineJoin="round"
             dashArray=""
-            // 箭头配置
-            arrowheads={{
-              enabled: true,
-              size: 10,
-              frequency: 'allvertices',
-              color: '#3b82f6',
-              opacity: 0.9
-            }}
           />
         )}
         
@@ -371,9 +363,11 @@ const Map: React.FC<MapProps> = ({
                   if (isSelected) {
                     // 取消选择
                     newSelectedFootprints = (selectedFootprints || []).filter(fp => fp.id !== footprint.id);
+                    console.log('Deselecting point:', footprint.id, 'Name:', footprint.name);
                   } else {
                     // 添加选择
                     newSelectedFootprints = [...(selectedFootprints || []), footprint];
+                    console.log('Selecting point:', footprint.id, 'Name:', footprint.name);
                   }
                   
                   onRoutePlanChange(newSelectedFootprints);
