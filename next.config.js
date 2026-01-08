@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // 配置兼容性，避免使用某些浏览器不支持的 ESM 特性
-  experimental: {
-    serverActions: false,
-  },
   // 优化构建输出，确保更好的兼容性
   webpack: (config) => {
     // 确保输出的代码兼容性更高
