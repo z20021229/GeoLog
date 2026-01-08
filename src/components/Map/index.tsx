@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import { Footprint } from '../../types';
 import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
+import { MapPin } from 'lucide-react';
 
 interface MapProps {
   center?: [number, number];
@@ -64,19 +65,7 @@ const MapEvents: React.FC<MapEventsProps> = ({ onMapClick, tempMarker, setTempMa
   return null;
 };
 
-const createTemporaryIcon = (L: any) => {
-  const color = '#ec4899';
-  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
-  
-  return L.divIcon({
-    className: 'custom-leaflet-marker',
-    html: `<div class="marker-container">${svgIcon}</div>`,
-    iconSize: [28, 38],
-    iconAnchor: [14, 38],
-    popupAnchor: [0, -38],
-  });
-};
-
+// 创建自定义图标，使用 lucide-react 的 MapPin 图标，并添加动画效果
 const createCustomIcon = (L: any, category: string) => {
   const colors: Record<string, string> = {
     '探店': '#ef4444',
@@ -86,11 +75,35 @@ const createCustomIcon = (L: any, category: string) => {
   };
   
   const color = colors[category] || '#3b82f6';
-  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
+  
+  // 使用 MapPin 图标的 SVG 结构
+  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+    <circle cx="12" cy="10" r="3" fill="${color}" stroke="white" stroke-width="2"/>
+  </svg>`;
   
   return L.divIcon({
-    className: 'custom-leaflet-marker',
-    html: `<div class="marker-container">${svgIcon}</div>`,
+    // 添加动画类名
+    className: 'custom-leaflet-marker marker-animate',
+    html: `<div class="marker-container animate-pop">${svgIcon}</div>`,
+    iconSize: [28, 38],
+    iconAnchor: [14, 38],
+    popupAnchor: [0, -38],
+  });
+};
+
+// 创建临时标记图标，使用相同的动画效果
+const createTemporaryIcon = (L: any) => {
+  const color = '#ec4899';
+  
+  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+    <circle cx="12" cy="10" r="3" fill="${color}" stroke="white" stroke-width="2"/>
+  </svg>`;
+  
+  return L.divIcon({
+    className: 'custom-leaflet-marker marker-animate',
+    html: `<div class="marker-container animate-pop">${svgIcon}</div>`,
     iconSize: [28, 38],
     iconAnchor: [14, 38],
     popupAnchor: [0, -38],
@@ -200,6 +213,12 @@ const Map: React.FC<MapProps> = ({
       const selectedFootprint = footprints.find(fp => fp.id === selectedFootprintId);
       if (selectedFootprint) {
         try {
+          // 平滑移动到选中足迹的坐标
+          mapRef.current.flyTo(selectedFootprint.coordinates, zoom, {
+            duration: 1.5,
+            easeLinearity: 0.25,
+          });
+          
           setTimeout(() => {
             mapRef.current?.eachLayer((layer: any) => {
               if (layer instanceof L.Marker) {
@@ -212,11 +231,11 @@ const Map: React.FC<MapProps> = ({
             });
           }, 500);
         } catch (error) {
-          console.error('Failed to open popup:', error);
+          console.error('Failed to center map or open popup:', error);
         }
       }
     }
-  }, [selectedFootprintId, footprints, isClient, L]);
+  }, [selectedFootprintId, footprints, isClient, L, zoom]);
 
   if (loadError) {
     return (
@@ -282,23 +301,25 @@ const Map: React.FC<MapProps> = ({
             position={footprint.coordinates} 
             icon={createCustomIcon(L, footprint.category)}
           >
-            <Popup>
-              <div className="w-[250px]">
+            <Popup 
+              className="custom-popup rounded-xl bg-slate-800/90 shadow-xl backdrop-blur-sm"
+            >
+              <div className="w-[250px] p-3">
                 {footprint.image && (
                   <img
                     src={footprint.image}
                     alt={footprint.name}
-                    className="w-full h-auto rounded-t-lg mb-2"
+                    className="w-full h-32 object-cover rounded-lg mb-3 shadow-md"
                   />
                 )}
-                <h3 className="font-bold text-base">{footprint.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{footprint.location}</p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
-                  <span className="bg-accent px-2 py-0.5 rounded-full">{footprint.category}</span>
+                <h3 className="font-bold text-lg text-white">{footprint.name}</h3>
+                <p className="text-sm text-gray-300 mt-1">{footprint.location}</p>
+                <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
+                  <span className="bg-gray-700/50 px-2 py-0.5 rounded-full">{footprint.category}</span>
                   <span>{footprint.date}</span>
                 </div>
                 {footprint.description && (
-                  <p className="text-sm mt-2 leading-relaxed">{footprint.description}</p>
+                  <p className="text-sm text-gray-300 mt-3 leading-relaxed">{footprint.description}</p>
                 )}
               </div>
             </Popup>
