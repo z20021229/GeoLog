@@ -134,6 +134,24 @@
   background: #0f172a !important; /* 尖角也要改色 */
 }
 
+/* 用户要求的终极Z-Index样式补丁 */
+/* 强制 Popup 容器显示在所有地图图层之上 */
+.leaflet-popup {
+  z-index: 10000 !important;
+}
+
+/* 优化气泡尖角，使其指向 Marker 顶部 */
+.leaflet-popup-tip-container {
+  margin-top: -1px !important;
+}
+
+/* 紧凑型面板样式 */
+.custom-popup .leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-radius: 6px;
+  padding: 0;
+}
+
 .leaflet-popup-tip-container {
   margin: 0 auto;
   width: 40px;
