@@ -22,7 +22,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ footprints }) => {
 
   if (footprints.length === 0) {
     return (
-      <div className="flex flex-col h-full bg-background overflow-hidden p-4 text-center text-muted-foreground">
+      <div className="flex flex-col h-full p-4 justify-start text-center text-muted-foreground">
         <BarChart3 size={48} className="mx-auto mb-4 opacity-50" />
         <p>暂无足迹数据</p>
         <p className="text-sm mt-2">添加足迹后即可查看统计</p>
@@ -31,43 +31,41 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ footprints }) => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-hidden">
-      <h2 className="text-lg font-semibold px-4 py-3">数据统计</h2>
+    <div className="flex flex-col h-full p-4 justify-start">
+      <h2 className="text-lg font-semibold mb-4">数据统计</h2>
       
-      <div className="mt-2 mb-4 px-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg p-4 text-center border border-blue-500/30 shadow-sm">
-            <div className="flex items-center justify-center gap-1 text-muted-foreground mb-2">
-              <MapPin size={14} />
-              <span className="text-xs">足迹数</span>
-            </div>
-            <p className="text-2xl font-bold">{overviewStats.totalFootprints}</p>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg p-4 text-center border border-blue-500/30 shadow-sm">
+          <div className="flex items-center justify-center gap-1 text-muted-foreground mb-2">
+            <MapPin size={14} />
+            <span className="text-xs">足迹数</span>
           </div>
-          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg p-4 text-center border border-green-500/30 shadow-sm">
-            <div className="flex items-center justify-center gap-1 text-muted-foreground mb-2">
-              <MapPin size={14} />
-              <span className="text-xs">城市数</span>
-            </div>
-            <p className="text-2xl font-bold">{overviewStats.cityCount}</p>
+          <p className="text-2xl font-bold">{overviewStats.totalFootprints}</p>
+        </div>
+        <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg p-4 text-center border border-green-500/30 shadow-sm">
+          <div className="flex items-center justify-center gap-1 text-muted-foreground mb-2">
+            <MapPin size={14} />
+            <span className="text-xs">城市数</span>
           </div>
-          <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-lg p-4 text-center border border-amber-500/30 shadow-sm">
-            <div className="flex items-center justify-center gap-1 text-muted-foreground mb-2">
-              <Calendar size={14} />
-              <span className="text-xs">最早</span>
-            </div>
-            <p className="text-sm font-medium">{overviewStats.earliestDate}</p>
+          <p className="text-2xl font-bold">{overviewStats.cityCount}</p>
+        </div>
+        <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-lg p-4 text-center border border-amber-500/30 shadow-sm">
+          <div className="flex items-center justify-center gap-1 text-muted-foreground mb-2">
+            <Calendar size={14} />
+            <span className="text-xs">最早</span>
           </div>
-          <div className="bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-lg p-4 text-center border border-pink-500/30 shadow-sm">
-            <div className="flex items-center justify-center gap-1 text-muted-foreground mb-2">
-              <Clock size={14} />
-              <span className="text-xs">最近</span>
-            </div>
-            <p className="text-sm font-medium">{overviewStats.latestDate}</p>
+          <p className="text-sm font-medium">{overviewStats.earliestDate}</p>
+        </div>
+        <div className="bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-lg p-4 text-center border border-pink-500/30 shadow-sm">
+          <div className="flex items-center justify-center gap-1 text-muted-foreground mb-2">
+            <Clock size={14} />
+            <span className="text-xs">最近</span>
           </div>
+          <p className="text-sm font-medium">{overviewStats.latestDate}</p>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4 min-h-0">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="bg-accent/30 rounded-lg p-4 shadow-sm">
           <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-primary"></span>
