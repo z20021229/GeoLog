@@ -95,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      <Tabs.Root defaultValue="list" className="flex-1 flex flex-col overflow-hidden">
+      <Tabs.Root defaultValue="list" className="flex-1 flex flex-col">
         <Tabs.List className="flex border-b border-border">
           <Tabs.Trigger
             value="list"
@@ -113,9 +113,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           </Tabs.Trigger>
         </Tabs.List>
 
-        {/* 足迹列表 - 三步强力修复 */}
-        <Tabs.Content value="list" className="h-full overflow-y-auto m-0 p-0">
+        {/* 足迹列表 */}
+        <Tabs.Content value="list" className="flex-1 overflow-y-auto">
           <div className="min-h-[200px] w-full bg-red-500/10">
+            {/* 强制显示测试 */}
+            <p className="text-white p-4">列表测试：{footprints.length}</p>
             <div className="p-4 pb-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
@@ -134,14 +136,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                 你已在地图上留下了 {filteredFootprints.length} 个足迹
               </p>
               
-              {/* 1. 强制渲染测试：显示暂无数据提示 */}
+              {/* 强制渲染测试：显示暂无数据提示 */}
               {filteredFootprints.length === 0 && (
                 <div className="bg-yellow-500/10 p-4 rounded-md text-center">
                   暂无足迹数据
                 </div>
               )}
               
-              {/* 2. 渲染足迹列表 */}
+              {/* 渲染足迹列表 */}
               <div className="space-y-2 mt-4">
                 {filteredFootprints.map((footprint) => (
                   <div
@@ -186,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.Content>
 
         {/* 数据统计 */}
-        <Tabs.Content value="stats" className="h-full overflow-y-auto m-0 p-0">
+        <Tabs.Content value="stats" className="flex-1 overflow-y-auto">
           <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
       </Tabs.Root>
