@@ -25,11 +25,7 @@ const FootprintList: React.FC<FootprintListProps> = ({
   );
 
   return (
-    <div className="flex-1 overflow-y-auto w-full p-4">
-      {/* 重构验证埋点 */}
-      <div className="bg-green-500 text-white p-2 text-xs mb-4">
-        重构调试：列表组件已挂载 (数量: {footprints.length})
-      </div>
+    <div className="h-full overflow-y-auto p-4">
       
       {/* 搜索框 */}
       <div className="mb-4">

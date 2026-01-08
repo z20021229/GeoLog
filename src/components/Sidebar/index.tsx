@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="text-xs text-muted-foreground text-center py-2">
             {footprints.length} 足迹
           </div>
-          {filteredFootprints.map((footprint) => (
+          {footprints.map((footprint) => (
             <div
               key={footprint.id}
               className={`p-3 rounded-md cursor-pointer transition-all flex items-center justify-center ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent'}`}
@@ -107,23 +107,24 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.List>
 
         {/* 足迹列表 */}
-        <Tabs.Content value="list" className="h-full w-full p-0 m-0 data-[state=inactive]:hidden">
-          {/* 这里的容器必须是 flex，确保 List 能撑开 */}
-          <div className="flex flex-col h-full w-full overflow-hidden">
-            <FootprintList 
-              footprints={footprints} 
-              selectedFootprintId={selectedFootprintId} 
-              onSelectFootprint={onSelectFootprint} 
-            />
+        <Tabs.Content value="list" className="h-full w-full data-[state=inactive]:hidden flex flex-col overflow-hidden">
+          {/* 绿色调试条，确认组件加载 */}
+          <div className="bg-green-600 text-white text-xs p-1 text-center shrink-0">
+              版本检测：{new Date().toLocaleTimeString()} - 足迹数: {footprints.length}
+          </div>
+          {/* 列表容器：必须有 flex-1 和 min-h-0 防止塌陷 */}
+          <div className="flex-1 min-h-0 w-full">
+              <FootprintList 
+                footprints={footprints} 
+                selectedFootprintId={selectedFootprintId} 
+                onSelectFootprint={onSelectFootprint} 
+              />
           </div>
         </Tabs.Content>
 
         {/* 数据统计 */}
-        <Tabs.Content value="statistics" className="h-full w-full p-0 m-0 data-[state=inactive]:hidden">
-          {/* 这里的容器维持 block，确保吸顶 */}
-          <div className="block h-full w-full overflow-y-auto">
-            <StatisticsPanel footprints={footprints} />
-          </div>
+        <Tabs.Content value="statistics" className="h-full w-full data-[state=inactive]:hidden block overflow-y-auto">
+          <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
       </Tabs.Root>
 
