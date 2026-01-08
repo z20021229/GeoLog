@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents, LayersControl, Polyline } from 'react-leaflet';
 import { Footprint } from '../../types';
 import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
-import { getOSRMWalkingRoute, formatDistance as formatOSRMDistance, formatTime } from '../../utils/osrm';
+import { getOSRMWalkingRoute, formatOSRMDistance, formatTime } from '../../utils/osrm';
 import { MapPin } from 'lucide-react';
 
 interface MapProps {

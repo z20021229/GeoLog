@@ -69,7 +69,7 @@ export const getOSRMWalkingRoute = async (coordinates: [number, number][]): Prom
  * @param distance 距离（米）
  * @returns 格式化后的距离字符串
  */
-export const formatDistance = (distance: number): string => {
+export const formatOSRMDistance = (distance: number): string => {
   if (distance < 1000) {
     return `${Math.round(distance)}米`;
   }
