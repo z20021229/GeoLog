@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { Menu, X, Download, Upload, List, BarChart3 } from 'lucide-react';
+import { Menu, X, Download, Upload, List, BarChart3, MapPin } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint } from '../../types';
 import StatisticsPanel from './StatisticsPanel';
