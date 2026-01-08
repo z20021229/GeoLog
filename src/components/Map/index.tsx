@@ -351,13 +351,24 @@ const Map: React.FC<MapProps> = ({
         }}
       >
         <LayersControl>
-          {/* 底图层 */}
+          {/* 底图层 - 添加Fallback机制 */}
           <LayersControl.BaseLayer checked name="暗黑模式 (CartoDB)">
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               subdomains={['a', 'b', 'c', 'd']}
               maxZoom={18}
+              errorTileUrl="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
+          
+          {/* 添加OpenStreetMap标准源作为备用 */}
+          <LayersControl.BaseLayer name="OpenStreetMap 标准源">
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              subdomains={['a', 'b', 'c']}
+              maxZoom={19}
             />
           </LayersControl.BaseLayer>
           
