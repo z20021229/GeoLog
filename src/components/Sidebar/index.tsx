@@ -108,11 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* 足迹列表：使用绝对定位方案 */}
         <Tabs.Content value="list" className="absolute top-[48px] bottom-[60px] left-0 right-0 m-0 p-0 data-[state=inactive]:hidden flex flex-col">
-          {/* 物理高度测试：显眼的背景色和文字 */}
-          <div className="bg-green-600 text-white text-[10px] py-1 text-center shrink-0">
-              列表容器已挂载 - 记录数: {footprints?.length || 0}
-          </div>
-          {/* 列表滚动区域 */}
+          {/* 列表滚动区域：直接作为Tabs.Content的子元素，平滑贴合在Tab下方 */}
           <div className="flex-1 overflow-y-auto scrollbar-thin">
               <FootprintList 
                 footprints={footprints} 
