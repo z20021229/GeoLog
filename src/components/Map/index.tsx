@@ -13,6 +13,7 @@ interface MapProps {
   onMapClick: (latlng: [number, number]) => void;
   selectedFootprintId?: string;
   selectedFootprints?: Footprint[];
+  onRoutePlanChange?: (footprints: Footprint[]) => void;
 }
 
 interface MapViewProps {
@@ -117,7 +118,8 @@ const Map: React.FC<MapProps> = ({
   footprints, 
   onMapClick,
   selectedFootprintId,
-  selectedFootprints = []
+  selectedFootprints = [],
+  onRoutePlanChange
 }) => {
   if (typeof window === 'undefined') {
     return (
@@ -232,6 +234,25 @@ const Map: React.FC<MapProps> = ({
     }
   }, [selectedFootprintId, footprints, isClient, L, zoom]);
 
+  // 当选中足迹变化时，自动缩放地图以显示所有选中的足迹
+  useEffect(() => {
+    if (isClient && mapRef.current && selectedFootprints.length > 1) {
+      try {
+        // 收集所有选中足迹的坐标
+        const coordinates = selectedFootprints.map(fp => fp.coordinates);
+        
+        // 使用fitBounds自动缩放地图以显示所有选中的足迹
+        mapRef.current.fitBounds(coordinates, {
+          padding: [50, 50],
+          animate: true,
+          duration: 1.5
+        });
+      } catch (error) {
+        console.error('Failed to fit bounds:', error);
+      }
+    }
+  }, [selectedFootprints, isClient]);
+
   if (loadError) {
     return (
       <div className="w-full h-full bg-slate-900 flex items-center justify-center p-6">
@@ -310,12 +331,20 @@ const Map: React.FC<MapProps> = ({
         {selectedFootprints.length > 1 && (
           <Polyline
             positions={selectedFootprints.map(fp => fp.coordinates)}
-            color="#ef4444"
-            weight={3}
-            opacity={0.8}
+            color="#3b82f6"
+            weight={4}
+            opacity={0.9}
             lineCap="round"
             lineJoin="round"
             dashArray=""
+            // 箭头配置
+            arrowheads={{
+              enabled: true,
+              size: 10,
+              frequency: 'allvertices',
+              color: '#3b82f6',
+              opacity: 0.9
+            }}
           />
         )}
         
@@ -334,6 +363,21 @@ const Map: React.FC<MapProps> = ({
               click: () => {
                 console.log('Marker clicked:', footprint.name);
                 setTargetFootprint(footprint);
+                // 在路线规划模式下，点击 Marker 时处理选中状态
+                if (onRoutePlanChange) {
+                  const isSelected = selectedFootprints?.some(fp => fp.id === footprint.id) || false;
+                  let newSelectedFootprints: Footprint[];
+                  
+                  if (isSelected) {
+                    // 取消选择
+                    newSelectedFootprints = (selectedFootprints || []).filter(fp => fp.id !== footprint.id);
+                  } else {
+                    // 添加选择
+                    newSelectedFootprints = [...(selectedFootprints || []), footprint];
+                  }
+                  
+                  onRoutePlanChange(newSelectedFootprints);
+                }
               }
             }}
           />

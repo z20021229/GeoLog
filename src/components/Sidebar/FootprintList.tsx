@@ -123,7 +123,7 @@ const FootprintList: React.FC<FootprintListProps> = ({
                   </div>
                   
                   {/* 足迹卡片 */}
-                  <div className="flex-1 bg-background rounded-md overflow-hidden shadow-sm border border-border hover:bg-accent transition-colors">
+                  <div className={`flex-1 bg-background rounded-md overflow-hidden shadow-sm border border-border hover:bg-accent transition-colors ${isFootprintSelected(footprint) ? 'bg-primary/10 border-primary' : ''}`}>
                     <div className="flex gap-3 p-3">
                       {isRoutePlanning && (
                         <input
@@ -170,7 +170,7 @@ const FootprintList: React.FC<FootprintListProps> = ({
       {filteredFootprints.map((footprint) => (
         <div
           key={footprint.id}
-          className={`p-3 rounded-md cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent'}`}
+          className={`p-3 rounded-md cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : isFootprintSelected(footprint) ? 'bg-primary/10 border-l-4 border-primary' : 'bg-background hover:bg-accent'}`}
           onClick={() => handleFootprintSelect(footprint)}
         >
           <div className="flex flex-col gap-3">

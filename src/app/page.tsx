@@ -23,6 +23,9 @@ const Home: React.FC = () => {
   const [mapCenter, setMapCenter] = useState<[number, number]>([39.9042, 116.4074]);
   const [mapZoom, setMapZoom] = useState<number>(10);
   
+  // 路线规划相关状态
+  const [selectedFootprints, setSelectedFootprints] = useState<Footprint[]>([]);
+  
   // 添加足迹弹窗相关状态
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [clickedCoordinates, setClickedCoordinates] = useState<[number, number]>([0, 0]);
@@ -45,6 +48,11 @@ const Home: React.FC = () => {
     setMapZoom(15);
   };
 
+  // 处理路线规划选择变化
+  const handleRoutePlanChange = (footprints: Footprint[]) => {
+    setSelectedFootprints(footprints);
+  };
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
@@ -56,6 +64,8 @@ const Home: React.FC = () => {
         onSelectFootprint={handleSelectFootprint}
         onExportData={handleExportData}
         onImportData={handleImportData}
+        selectedFootprints={selectedFootprints}
+        onRoutePlanChange={handleRoutePlanChange}
       />
       
       {/* Main Content - Map */}
@@ -68,6 +78,8 @@ const Home: React.FC = () => {
               footprints={footprints}
               onMapClick={handleMapClick}
               selectedFootprintId={selectedFootprintId}
+              selectedFootprints={selectedFootprints}
+              onRoutePlanChange={handleRoutePlanChange}
             />
           </Suspense>
         </div>

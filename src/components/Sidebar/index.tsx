@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import { Menu, X, Download, Upload, List, BarChart3, MapPin, Route, Plus, Save } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint } from '../../types';
+import { calculateTotalDistance, formatDistance } from '../../utils/distance';
 import StatisticsPanel from './StatisticsPanel';
 import FootprintList from './FootprintList';
 
@@ -126,14 +127,21 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.List>
 
         {/* 路线规划按钮 */}
-        <div className="p-4 border-b border-border flex items-center justify-between">
+        <div className="p-4 border-b border-border">
           <button
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${isRoutePlanning ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${isRoutePlanning ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'} w-full justify-center`}
             onClick={handleRoutePlanToggle}
           >
             <Route size={16} />
             {isRoutePlanning ? '退出路线规划' : '规划路线'}
           </button>
+          
+          {/* 路线信息显示 */}
+          {isRoutePlanning && selectedFootprints.length > 0 && (
+            <div className="mt-2 text-center text-sm text-muted-foreground">
+              已选 {selectedFootprints.length} 个点，总长 {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}km
+            </div>
+          )}
         </div>
 
         {/* 足迹列表：使用绝对定位方案 */}
