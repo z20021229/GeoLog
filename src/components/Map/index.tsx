@@ -324,25 +324,25 @@ const Map: React.FC<MapProps> = ({
             icon={createCustomIcon(L, footprint.category)}
           >
             <Popup 
-              className="custom-popup rounded-xl bg-slate-800/90 shadow-xl backdrop-blur-sm"
+              className="custom-popup"
+              offset={[0, -10]}
+              autoPanPadding={[50, 50]}
             >
-              <div className="w-[250px] p-3">
+              <div className="w-[220px]">
                 {footprint.image && (
                   <img
                     src={footprint.image}
                     alt={footprint.name}
-                    className="w-full h-32 object-cover rounded-lg mb-3 shadow-md"
+                    className="w-full h-28 object-cover rounded-t-lg"
                   />
                 )}
-                <h3 className="font-bold text-lg text-white">{footprint.name}</h3>
-                <p className="text-sm text-gray-300 mt-1">{footprint.location}</p>
-                <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
-                  <span className="bg-gray-700/50 px-2 py-0.5 rounded-full">{footprint.category}</span>
-                  <span>{footprint.date}</span>
+                <div className="p-2">
+                  <h3 className="font-bold text-sm text-white truncate">{footprint.name}</h3>
+                  <p className="text-xs opacity-80 text-gray-300 mt-1 line-clamp-2">{footprint.location}</p>
+                  {footprint.description && (
+                    <span className="inline-block bg-blue-500/30 text-blue-200 text-xs px-2 py-0.5 rounded-full mt-1">{footprint.description}</span>
+                  )}
                 </div>
-                {footprint.description && (
-                  <p className="text-sm text-gray-300 mt-3 leading-relaxed">{footprint.description}</p>
-                )}
               </div>
             </Popup>
           </Marker>
