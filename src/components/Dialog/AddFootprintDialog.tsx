@@ -45,9 +45,14 @@ const AddFootprintDialog: React.FC<AddFootprintDialogProps> = ({ open, onClose, 
               name: addressData.name.split(',').shift() || '',
               location: addressData.address,
             }));
+          } else {
+            // 定位失败时不要乱填，留空让用户自己填
+            setFormData(prev => ({ ...prev, location: '', address: '' }));
           }
         } catch (error) {
           console.error('获取地址信息失败:', error);
+          // 失败时不要乱填，留空让用户自己填
+          setFormData(prev => ({ ...prev, location: '', address: '' }));
         } finally {
           setIsLoading(false);
         }

@@ -106,25 +106,26 @@ const Sidebar: React.FC<SidebarProps> = ({
           </Tabs.Trigger>
         </Tabs.List>
 
-        {/* 足迹列表 */}
-        <Tabs.Content value="list" className="h-full w-full data-[state=inactive]:hidden flex flex-col overflow-hidden">
-          {/* 绿色调试条，确认组件加载 */}
-          <div className="bg-green-600 text-white text-xs p-1 text-center shrink-0">
-              版本检测：{new Date().toLocaleTimeString()} - 足迹数: {footprints.length}
-          </div>
-          {/* 列表容器：必须有 flex-1 和 min-h-0 防止塌陷 */}
-          <div className="flex-1 min-h-0 w-full">
-              <FootprintList 
-                footprints={footprints} 
-                selectedFootprintId={selectedFootprintId} 
-                onSelectFootprint={onSelectFootprint} 
-              />
-          </div>
+        {/* 1. 足迹列表：强制使用 Flex 布局，且要有最小高度 */}
+        <Tabs.Content value="list" className="h-full w-full flex flex-col data-[state=inactive]:hidden">
+            {/* 调试条：如果看到它，说明组件加载了 */}
+            <div className="bg-blue-600 text-white text-xs p-1 text-center shrink-0">
+                系统状态: 在线 | 足迹数: {footprints.length}
+            </div>
+            {/* 核心容器：flex-1 撑满剩余空间，min-h-0 防止溢出隐藏 */}
+            <div className="flex-1 min-h-0 w-full relative">
+                <div className="absolute inset-0 overflow-y-auto">
+                    <FootprintList 
+                      footprints={footprints} 
+                      selectedFootprintId={selectedFootprintId} 
+                      onSelectFootprint={onSelectFootprint} 
+                    />
+                </div>
+            </div>
         </Tabs.Content>
-
-        {/* 数据统计 */}
+        {/* 2. 数据统计：强制使用 Block 布局 */}
         <Tabs.Content value="statistics" className="h-full w-full data-[state=inactive]:hidden block overflow-y-auto">
-          <StatisticsPanel footprints={footprints} />
+            <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
       </Tabs.Root>
 
