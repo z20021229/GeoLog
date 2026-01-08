@@ -184,7 +184,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.Content>
       </Tabs.Root>
 
-      <div className="p-4 border-t border-border">
+      <div className="mt-auto p-4 border-t border-border">
         <div className="flex gap-2">
           <button
             onClick={handleExportClick}

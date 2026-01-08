@@ -25,60 +25,11 @@ export const isMobile = () => {
 };
 
 /**
- * 显示错误提示
+ * 显示错误提示 - 改为控制台日志，避免UI干扰
  */
 export const showError = (error: Error | string) => {
   if (typeof window === 'undefined') return;
   
   const message = typeof error === 'string' ? error : error.message;
-  
-  // 创建错误提示元素
-  const errorDiv = document.createElement('div');
-  errorDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #ef4444;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 9999;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 14px;
-    max-width: 90%;
-    text-align: center;
-  `;
-  errorDiv.textContent = `错误: ${message}`;
-  
-  // 添加关闭按钮
-  const closeButton = document.createElement('button');
-  closeButton.textContent = '×';
-  closeButton.style.cssText = `
-    position: absolute;
-    top: 4px;
-    right: 8px;
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-  `;
-  
-  closeButton.addEventListener('click', () => {
-    document.body.removeChild(errorDiv);
-  });
-  
-  errorDiv.appendChild(closeButton);
-  document.body.appendChild(errorDiv);
-  
-  // 5秒后自动消失
-  setTimeout(() => {
-    if (document.body.contains(errorDiv)) {
-      document.body.removeChild(errorDiv);
-    }
-  }, 5000);
+  console.error(`错误: ${message}`);
 };
