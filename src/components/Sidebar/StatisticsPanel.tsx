@@ -22,7 +22,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ footprints }) => {
 
   if (footprints.length === 0) {
     return (
-      <div className="flex flex-col h-full p-4 justify-start text-center text-muted-foreground">
+      <div className="h-full w-full flex flex-col justify-start items-stretch p-4 pt-2 text-center text-muted-foreground">
         <BarChart3 size={48} className="mx-auto mb-4 opacity-50" />
         <p>暂无足迹数据</p>
         <p className="text-sm mt-2">添加足迹后即可查看统计</p>
@@ -31,10 +31,10 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ footprints }) => {
   }
 
   return (
-    <div className="flex flex-col h-full p-4 justify-start">
-      <h2 className="text-lg font-semibold mb-4">数据统计</h2>
+    <div className="h-full w-full flex flex-col justify-start items-stretch p-4 pt-2">
+      <h2 className="text-lg font-semibold mb-4 mt-0">数据统计</h2>
       
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg p-4 text-center border border-blue-500/30 shadow-sm">
           <div className="flex items-center justify-center gap-1 text-muted-foreground mb-2">
             <MapPin size={14} />
@@ -65,14 +65,14 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ footprints }) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="bg-accent/30 rounded-lg p-4 shadow-sm">
+      <div className="h-[250px] w-full mt-4">
+        <div className="bg-accent/30 rounded-lg p-4 shadow-sm h-full">
           <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-primary"></span>
             分类分布
           </h3>
-          <div className="flex justify-center">
-            <PieChart width={280} height={280}>
+          <div className="flex justify-center h-[calc(100%-40px)]">
+            <PieChart width={280} height={200}>
               <Pie
                 data={categoryStats}
                 cx="50%"
@@ -100,8 +100,10 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ footprints }) => {
             </PieChart>
           </div>
         </div>
+      </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-lg p-5 border border-white/20 shadow-xl mt-4">
+      <div className="mt-4">
+        <div className="bg-white/10 backdrop-blur-md rounded-lg p-5 border border-white/20 shadow-xl">
           <div className="flex items-center gap-3 mb-3">
             <Sparkles size={18} className="text-purple-400" />
             <h3 className="text-base font-medium">{aiSummary.title}</h3>

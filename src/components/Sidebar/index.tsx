@@ -179,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </Tabs.Content>
 
-        <Tabs.Content value="stats" className="flex-1 overflow-y-auto">
+        <Tabs.Content value="stats" className="m-0 p-0 h-full flex flex-col justify-start">
           <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
       </Tabs.Root>
