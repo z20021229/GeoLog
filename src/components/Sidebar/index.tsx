@@ -114,12 +114,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.List>
 
         {/* 足迹列表 */}
-        <Tabs.Content value="list" className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <Tabs.Content 
+          value="list" 
+          className="flex-1 flex flex-col min-h-0 overflow-hidden"
+          style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
+        >
           {/* 调试代码插桩：检测展开状态 */}
           <div className='bg-blue-500 text-white p-2'>检测到展开状态，正在渲染列表...</div>
           
           {/* FootprintList组件 */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0">
             <div className="p-4 pb-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
@@ -144,6 +148,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                   暂无足迹数据
                 </div>
               )}
+              
+              {/* 物理证据测试：强行写死的调试信息 */}
+              <div style={{color: 'red', background: 'white'}}>调试：当前有 {footprints.length} 条数据</div>
               
               {/* 渲染足迹列表 */}
               <div className="space-y-2 mt-4">
@@ -190,7 +197,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Tabs.Content>
 
         {/* 数据统计 */}
-        <Tabs.Content value="stats" className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <Tabs.Content value="stats" className="block h-full overflow-hidden">
           <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
       </Tabs.Root>
