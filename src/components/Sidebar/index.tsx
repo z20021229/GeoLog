@@ -113,8 +113,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           </Tabs.Trigger>
         </Tabs.List>
 
-        {/* 足迹列表 - 保持原有flex布局 */}
-        <Tabs.Content value="list" className="flex-1 overflow-hidden flex flex-col m-0 p-0">
+        {/* 足迹列表 - 使用block布局，防止高度塌陷 */}
+        <Tabs.Content value="list" className="h-full overflow-y-auto m-0 p-0">
           <div className="p-4 pb-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
@@ -128,10 +128,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="px-4 pb-4">
             <p className="text-sm text-muted-foreground mb-4">
               你已在地图上留下了 {filteredFootprints.length} 个足迹
             </p>
+            {console.log('Current footprints:', footprints)}
             {filteredFootprints.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <p>暂无足迹，点击地图添加第一个足迹吧！</p>
@@ -180,8 +181,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </Tabs.Content>
 
-        {/* 数据统计 - 使用block布局 */}
-        <Tabs.Content value="stats" style={{ display: 'block', height: '100%', padding: 0 }}>
+        {/* 数据统计 - 保持block布局 */}
+        <Tabs.Content value="stats" className="h-full overflow-y-auto m-0 p-0">
           <StatisticsPanel footprints={footprints} />
         </Tabs.Content>
       </Tabs.Root>
