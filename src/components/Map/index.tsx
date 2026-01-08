@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents, LayersControl } from 'react-leaflet';
 import { Footprint } from '../../types';
 import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
 import { MapPin } from 'lucide-react';
@@ -152,6 +152,8 @@ const Map: React.FC<MapProps> = ({
   const [tempMarker, setTempMarker] = useState<[number, number] | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // 添加状态来控制自定义详情面板
+  const [targetFootprint, setTargetFootprint] = useState<Footprint | null>(null);
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -219,19 +221,10 @@ const Map: React.FC<MapProps> = ({
             easeLinearity: 0.25,
           });
           
-          setTimeout(() => {
-            mapRef.current?.eachLayer((layer: any) => {
-              if (layer instanceof L.Marker) {
-                const markerLatLng = layer.getLatLng();
-                if (markerLatLng.lat === selectedFootprint.coordinates[0] && 
-                    markerLatLng.lng === selectedFootprint.coordinates[1]) {
-                  layer.openPopup();
-                }
-              }
-            });
-          }, 500);
+          // 更新目标足迹，显示详情面板
+          setTargetFootprint(selectedFootprint);
         } catch (error) {
-          console.error('Failed to center map or open popup:', error);
+          console.error('Failed to center map:', error);
         }
       }
     }
@@ -324,56 +317,45 @@ const Map: React.FC<MapProps> = ({
             icon={createCustomIcon(L, footprint.category)}
             eventHandlers={{
               click: () => {
-                console.log('Popup opened for:', footprint.name);
+                console.log('Marker clicked:', footprint.name);
+                setTargetFootprint(footprint);
               }
             }}
-          >
-            <Popup 
-              className="ultra-compact-popup custom-popup"
-              offset={[0, -20]}
-              closeButton={false}
-              autoPan={true}
-              autoPanPadding={[100, 100]}
-            >
-              <div className="w-[220px]">
-                {footprint.image && (
-                  <img
-                    src={footprint.image}
-                    alt={footprint.name}
-                    className="w-full h-28 object-cover rounded-t-lg"
-                  />
-                )}
-                <div className="p-2">
-                  <h3 className="font-bold text-sm text-white truncate">{footprint.name}</h3>
-                  <p className="text-xs opacity-80 text-gray-300 mt-1 line-clamp-2">{footprint.location}</p>
-                  {footprint.description && (
-                    <span className="inline-block bg-blue-500/30 text-blue-200 text-xs px-2 py-0.5 rounded-full mt-1">{footprint.description}</span>
-                  )}
-                </div>
-              </div>
-            </Popup>
-          </Marker>
+          />
         ))}
         
         {tempMarker && (
           <Marker position={tempMarker} icon={createTemporaryIcon(L)}>
-            <Popup 
-              className="ultra-compact-popup custom-popup"
-              offset={[0, -20]}
-              closeButton={false}
-              autoPan={true}
-              autoPanPadding={[100, 100]}
-            >
-              <div className="p-2">
-                <h3 className="font-bold">临时标记</h3>
-                <p>点击位置：{tempMarker[0].toFixed(6)}, {tempMarker[1].toFixed(6)}</p>
-                <p className="text-xs text-muted-foreground mt-1">3秒后自动消失</p>
-              </div>
-            </Popup>
+            {/* 临时标记不显示详情面板 */}
           </Marker>
         )}
         
         <MapView center={center} zoom={zoom} />
+        
+        {/* 自定义固定详情面板 */}
+        {targetFootprint && (
+          <div 
+            id="custom-info-box"
+            className="fixed bottom-4 right-4 z-[99999] bg-slate-900 p-4 rounded-lg shadow-2xl border border-slate-700"
+            style={{ minWidth: '200px', maxWidth: '300px' }}
+          >
+            <h3 className="font-bold text-white text-sm mb-2 truncate">{targetFootprint.name}</h3>
+            <p className="text-xs text-gray-400 mb-2">{targetFootprint.location}</p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-blue-500/30 text-blue-200 text-xs px-2 py-0.5 rounded-full">{targetFootprint.category}</span>
+              <span className="text-xs text-gray-500">{targetFootprint.date}</span>
+            </div>
+            {targetFootprint.description && (
+              <p className="text-xs text-gray-300 mt-2 line-clamp-3">{targetFootprint.description}</p>
+            )}
+            <button 
+              onClick={() => setTargetFootprint(null)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-white text-xs"
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </MapContainer>
     </div>
   );
