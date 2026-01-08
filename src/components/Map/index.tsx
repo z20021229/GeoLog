@@ -329,10 +329,11 @@ const Map: React.FC<MapProps> = ({
             }}
           >
             <Popup 
-              className="custom-popup"
-              offset={[0, -5]}
-              autoPanPadding={[50, 50]}
+              className="ultra-compact-popup"
+              offset={[0, -2]}
               closeButton={false}
+              autoPan={true}
+              autoPanPadding={[100, 100]}
             >
               <div className="w-[220px]">
                 {footprint.image && (
@@ -357,8 +358,11 @@ const Map: React.FC<MapProps> = ({
         {tempMarker && (
           <Marker position={tempMarker} icon={createTemporaryIcon(L)}>
             <Popup 
-              offset={[0, -5]}
+              className="ultra-compact-popup"
+              offset={[0, -2]}
               closeButton={false}
+              autoPan={true}
+              autoPanPadding={[100, 100]}
             >
               <div className="p-2">
                 <h3 className="font-bold">临时标记</h3>
