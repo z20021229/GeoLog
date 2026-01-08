@@ -27,7 +27,7 @@ export const getAddressFromCoordinates = async (coordinates: Coordinates): Promi
     // 发送请求
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'GeoLog/1.0 (https://geolog.example.com)',
+        'User-Agent': 'GeoLogApp/1.0',
       },
     });
     

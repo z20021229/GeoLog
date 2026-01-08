@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Menu, X, Download, Upload, List, BarChart3 } from 'lucide-react';
-import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint } from '../../types';
 import StatisticsPanel from './StatisticsPanel';
 import FootprintList from './FootprintList';
@@ -27,6 +26,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onImportData
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // 添加activeTab状态来控制Tab切换
+  const [activeTab, setActiveTab] = useState<'list' | 'statistics'>('list');
 
   const handleExportClick = () => {
     onExportData();
@@ -88,46 +89,57 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      <Tabs.Root defaultValue="list" className="flex-1 flex flex-col">
-        <Tabs.List className="flex border-b border-border">
-          <Tabs.Trigger
-            value="list"
-            className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
-          >
-            <List size={16} />
-            足迹列表
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="statistics"
-            className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
-          >
-            <BarChart3 size={16} />
-            数据统计
-          </Tabs.Trigger>
-        </Tabs.List>
+      {/* 自定义Tab切换 */}
+      <div className="flex border-b border-border">
+        <button
+          onClick={() => setActiveTab('list')}
+          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2 px-4 ${activeTab === 'list' ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
+        >
+          <List size={16} />
+          足迹列表
+        </button>
+        <button
+          onClick={() => setActiveTab('statistics')}
+          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2 px-4 ${activeTab === 'statistics' ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
+        >
+          <BarChart3 size={16} />
+          数据统计
+        </button>
+      </div>
 
-        {/* 1. 足迹列表：强制使用 Flex 布局，且要有最小高度 */}
-        <Tabs.Content value="list" className="h-full w-full flex flex-col data-[state=inactive]:hidden">
-            {/* 调试条：如果看到它，说明组件加载了 */}
-            <div className="bg-blue-600 text-white text-xs p-1 text-center shrink-0">
-                系统状态: 在线 | 足迹数: {footprints.length}
-            </div>
-            {/* 核心容器：flex-1 撑满剩余空间，min-h-0 防止溢出隐藏 */}
-            <div className="flex-1 min-h-0 w-full relative">
-                <div className="absolute inset-0 overflow-y-auto">
-                    <FootprintList 
-                      footprints={footprints} 
-                      selectedFootprintId={selectedFootprintId} 
-                      onSelectFootprint={onSelectFootprint} 
-                    />
-                </div>
-            </div>
-        </Tabs.Content>
-        {/* 2. 数据统计：强制使用 Block 布局 */}
-        <Tabs.Content value="statistics" className="h-full w-full data-[state=inactive]:hidden block overflow-y-auto">
-            <StatisticsPanel footprints={footprints} />
-        </Tabs.Content>
-      </Tabs.Root>
+      {/* 1. 足迹列表：使用固定CSS样式 */}
+      <div 
+        style={{ 
+          height: 'calc(100vh - 160px)', 
+          position: 'relative', 
+          display: activeTab === 'list' ? 'block' : 'none' 
+        }}
+      >
+        {/* 强制渲染的大红字测试信息 */}
+        <div className="bg-red-500 text-white p-4">组件加载测试：当前足迹 {footprints.length} 个</div>
+        
+        {/* FootprintList组件 */}
+        <div style={{ height: 'calc(100% - 56px)', overflow: 'auto' }}>
+          <FootprintList 
+            footprints={footprints} 
+            selectedFootprintId={selectedFootprintId} 
+            onSelectFootprint={onSelectFootprint} 
+          />
+        </div>
+      </div>
+      
+      {/* 2. 数据统计：使用固定CSS样式 */}
+      <div 
+        style={{ 
+          height: 'calc(100vh - 160px)', 
+          position: 'relative', 
+          display: activeTab === 'statistics' ? 'block' : 'none' 
+        }}
+      >
+        <div style={{ height: '100%', overflow: 'auto' }}>
+          <StatisticsPanel footprints={footprints} />
+        </div>
+      </div>
 
       <div className="mt-auto p-4 border-t border-border">
         <div className="flex gap-2">
