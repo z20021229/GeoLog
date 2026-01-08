@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents, LayersControl, Polyline } from 'react-leaflet';
 import { Footprint } from '../../types';
 import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
-import { getMultiPointWalkingRoute, formatDistance as formatOSRMDistance, formatTime } from '../../utils/osrm';
+import { getOSRMWalkingRoute, formatDistance as formatOSRMDistance, formatTime } from '../../utils/osrm';
 import { MapPin } from 'lucide-react';
 
 interface MapProps {
@@ -261,11 +261,13 @@ const Map: React.FC<MapProps> = ({
       
       try {
         const coordinates = selectedFootprints.map(fp => fp.coordinates);
-        const route = await getMultiPointWalkingRoute(coordinates);
+        // 使用简化的OSRM调用函数
+        const route = await getOSRMWalkingRoute(coordinates);
         setWalkingRoute(route);
         onWalkingRouteChange?.(route);
       } catch (error) {
         console.error('Error calculating walking route:', error);
+        // 确保在发生错误时也设置为null，触发fallback
         setWalkingRoute(null);
         onWalkingRouteChange?.(null);
       } finally {
