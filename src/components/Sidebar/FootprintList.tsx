@@ -161,35 +161,37 @@ const FootprintList: React.FC<FootprintListProps> = ({
                   </div>
                   
                   {/* 足迹卡片 */}
-                  <div className={`flex-1 bg-background rounded-md overflow-hidden shadow-sm border border-border hover:bg-accent transition-colors ${highlightedFootprintId === footprint.id ? 'bg-accent/70' : ''} ${isFootprintSelected(footprint) ? 'bg-primary/10 border-primary' : ''}`}>
-                    <div className="flex gap-3 p-3">
-                      {isRoutePlanning && (
-                        <input
-                          type="checkbox"
-                          checked={isFootprintSelected(footprint)}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            handleFootprintSelect(footprint);
-                          }}
-                          className="mt-1 flex-shrink-0 h-4 w-4 text-primary focus:ring-primary border-input rounded"
-                        />
-                      )}
+                  <div className={`flex-1 bg-[#1e293b] rounded-xl overflow-hidden shadow-md border border-gray-700 hover:bg-gray-700/50 transition-colors ${highlightedFootprintId === footprint.id ? 'ring-2 ring-blue-500' : ''} ${isFootprintSelected(footprint) ? 'ring-2 ring-primary' : ''}`}>
+                    <div className="p-4">
                       {footprint.image && (
                         <img
                           src={footprint.image}
                           alt={footprint.name}
-                          className={`w-12 h-12 object-cover rounded-md flex-shrink-0 ${isRoutePlanning ? '' : 'ml-0'}`}
+                          className={`w-full object-cover rounded-lg mb-3 ${isRoutePlanning ? 'h-24' : 'h-32'}`}
                         />
                       )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{footprint.name}</h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                          <Calendar size={14} />
-                          <span className="truncate">{formatDate(footprint.date)}</span>
-                        </div>
-                        {footprint.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1 truncate">{footprint.description}</p>
+                      <div className="flex gap-3">
+                        {isRoutePlanning && (
+                          <input
+                            type="checkbox"
+                            checked={isFootprintSelected(footprint)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleFootprintSelect(footprint);
+                            }}
+                            className="mt-1 flex-shrink-0 h-4 w-4 text-primary focus:ring-primary border-input rounded"
+                          />
                         )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-white truncate">{footprint.name}</h3>
+                          <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+                            <Calendar size={14} />
+                            <span className="truncate">{formatDate(footprint.date)}</span>
+                          </div>
+                          {footprint.description && (
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2 truncate">{footprint.description}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -204,22 +206,20 @@ const FootprintList: React.FC<FootprintListProps> = ({
 
   // 常规列表视图
   const renderListView = () => (
-    <div className="space-y-2 mt-4">
+    <div className="space-y-3 mt-4">
       {filteredFootprints.map((footprint) => (
         <div
           key={footprint.id}
           id={`footprint-card-${footprint.id}`}
-          className={`p-3 rounded-md cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : 
-                     highlightedFootprintId === footprint.id ? 'bg-accent/70' : 
-                     isFootprintSelected(footprint) ? 'bg-primary/10 border-l-4 border-primary' : 'bg-background hover:bg-accent'}`}
+          className={`bg-[#1e293b] rounded-xl overflow-hidden shadow-md border border-gray-700 cursor-pointer transition-all hover:bg-gray-700/50 ${selectedFootprintId === footprint.id ? 'ring-2 ring-blue-500' : ''} ${highlightedFootprintId === footprint.id ? 'ring-2 ring-blue-500' : ''} ${isFootprintSelected(footprint) ? 'ring-2 ring-primary' : ''}`}
           onClick={() => handleFootprintSelect(footprint)}
         >
-          <div className="flex flex-col gap-2">
+          <div className="p-4">
             {footprint.image && (
               <img
                 src={footprint.image}
                 alt={footprint.name}
-                className={`w-full object-cover rounded-md ${isRoutePlanning ? 'h-12' : 'h-24'}`}
+                className={`w-full object-cover rounded-lg mb-3 ${isRoutePlanning ? 'h-24' : 'h-32'}`}
               />
             )}
             <div className="flex items-start gap-3">
@@ -234,10 +234,10 @@ const FootprintList: React.FC<FootprintListProps> = ({
                   className="mt-1 flex-shrink-0 h-4 w-4 text-primary focus:ring-primary border-input rounded"
                 />
               )}
-              <MapPin className={`mt-1 flex-shrink-0 ${isRoutePlanning ? 'ml-0' : ''}`} size={18} />
+              <MapPin className={`mt-1 flex-shrink-0 text-blue-400`} size={18} />
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium truncate">{footprint.name}</h3>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                <h3 className="font-medium text-white truncate">{footprint.name}</h3>
+                <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
                   <span className="truncate">{footprint.location}</span>
                   <Calendar size={14} />
                   <span className="truncate">{formatDate(footprint.date)}</span>
@@ -250,8 +250,11 @@ const FootprintList: React.FC<FootprintListProps> = ({
                     {footprint.category}
                   </span>
                 </div>
+                {footprint.description && (
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-2 truncate">{footprint.description}</p>
+                )}
               </div>
-              <ChevronRight size={16} className="mt-1 text-muted-foreground" />
+              <ChevronRight size={16} className="mt-1 text-gray-500" />
             </div>
           </div>
         </div>
@@ -265,11 +268,11 @@ const FootprintList: React.FC<FootprintListProps> = ({
       {/* 搜索框 */}
       <div className="mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
           <input
             type="text"
             placeholder="搜索足迹..."
-            className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder:text-gray-500"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -278,19 +281,19 @@ const FootprintList: React.FC<FootprintListProps> = ({
 
       {/* 视图切换和统计 */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-gray-400">
           你已在地图上留下了 {filteredFootprints.length} 个足迹
         </p>
-        <div className="flex items-center gap-2 border border-input rounded-md p-1">
+        <div className="flex items-center gap-2 bg-gray-800/50 rounded-full p-1">
           <button
-            className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
+            className={`p-2 rounded-full transition-colors ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'hover:bg-gray-700/80 text-gray-400'}`}
             onClick={() => setViewMode('list')}
             title="常规列表"
           >
             <List size={16} />
           </button>
           <button
-            className={`p-2 rounded-md transition-colors ${viewMode === 'timeline' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
+            className={`p-2 rounded-full transition-colors ${viewMode === 'timeline' ? 'bg-blue-500 text-white' : 'hover:bg-gray-700/80 text-gray-400'}`}
             onClick={() => setViewMode('timeline')}
             title="时光轴"
           >
@@ -301,8 +304,8 @@ const FootprintList: React.FC<FootprintListProps> = ({
       
       {/* 暂无数据提示 */}
       {filteredFootprints.length === 0 && (
-        <div className="bg-yellow-500/10 p-4 rounded-md text-center">
-          暂无足迹数据
+        <div className="bg-gray-800/50 p-6 rounded-xl text-center border border-gray-700">
+          <p className="text-gray-400">暂无足迹数据</p>
         </div>
       )}
       

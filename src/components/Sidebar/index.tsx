@@ -188,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className="w-[320px] h-[100vh] bg-[#0f172a] flex flex-col relative z-50">
+    <div className="w-80 h-screen bg-[#0f172a] shadow-2xl z-[50] flex flex-col relative">
       {/* 添加统计面板样式 */}
       <style jsx>{`
         /* 给统计面板增加明显的视觉区分 */
@@ -213,24 +213,24 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="flex flex-col flex-1">
-          <Tabs.List className="flex border-b border-gray-700">
+          <Tabs.List className="flex gap-2 p-2 bg-gray-800/50 rounded-full mx-4 my-2">
             <Tabs.Trigger
               value="list"
-              className="flex-1 px-4 py-2 text-sm font-medium text-gray-400 hover:text-white data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-2 px-4"
+              className="px-4 py-2 text-sm font-medium rounded-full transition-all flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:bg-gray-700/50 data-[state=inactive]:text-gray-300 hover:bg-gray-700/80"
             >
               <List size={16} />
               足迹列表
             </Tabs.Trigger>
             <Tabs.Trigger
               value="statistics"
-              className="flex-1 px-4 py-2 text-sm font-medium text-gray-400 hover:text-white data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-2 px-4"
+              className="px-4 py-2 text-sm font-medium rounded-full transition-all flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:bg-gray-700/50 data-[state=inactive]:text-gray-300 hover:bg-gray-700/80"
             >
               <BarChart3 size={16} />
               数据统计
             </Tabs.Trigger>
             <Tabs.Trigger
               value="guides"
-              className="flex-1 px-4 py-2 text-sm font-medium text-gray-400 hover:text-white data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-2 px-4"
+              className="px-4 py-2 text-sm font-medium rounded-full transition-all flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:bg-gray-700/50 data-[state=inactive]:text-gray-300 hover:bg-gray-700/80"
             >
               <Save size={16} />
               我的攻略
