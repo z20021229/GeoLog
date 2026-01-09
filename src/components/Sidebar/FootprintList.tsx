@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, Calendar, ChevronRight, List, GitCommit } from 'lucide-react';
 import { Footprint } from '../../types';
 import { formatDate } from '../../utils/markerUtils';
@@ -62,6 +62,38 @@ const FootprintList: React.FC<FootprintListProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
+  const [highlightedFootprintId, setHighlightedFootprintId] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  
+  // 监听高亮足迹事件
+  useEffect(() => {
+    const handleHighlightFootprint = (event: CustomEvent<{ footprintId: string }>) => {
+      const { footprintId } = event.detail;
+      setHighlightedFootprintId(footprintId);
+      
+      // 滚动到高亮的足迹卡片
+      setTimeout(() => {
+        const element = document.getElementById(`footprint-card-${footprintId}`);
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }, 100);
+      
+      // 3秒后移除高亮
+      setTimeout(() => {
+        setHighlightedFootprintId(null);
+      }, 3000);
+    };
+    
+    window.addEventListener('highlightFootprint', handleHighlightFootprint as EventListener);
+    
+    return () => {
+      window.removeEventListener('highlightFootprint', handleHighlightFootprint as EventListener);
+    };
+  }, []);
 
   // 处理足迹选择
   const handleFootprintSelect = (footprint: Footprint) => {
@@ -115,7 +147,10 @@ const FootprintList: React.FC<FootprintListProps> = ({
               {fps.map((footprint) => (
                 <div 
                   key={footprint.id}
-                  className={`flex gap-4 cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
+                  id={`footprint-card-${footprint.id}`}
+                  className={`flex gap-4 cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'opacity-100' : 
+                           highlightedFootprintId === footprint.id ? 'opacity-100' : 
+                           'opacity-70 hover:opacity-100'}`}
                   onClick={() => handleFootprintSelect(footprint)}
                 >
                   {/* 时间轴节点 */}
@@ -126,7 +161,7 @@ const FootprintList: React.FC<FootprintListProps> = ({
                   </div>
                   
                   {/* 足迹卡片 */}
-                  <div className={`flex-1 bg-background rounded-md overflow-hidden shadow-sm border border-border hover:bg-accent transition-colors ${isFootprintSelected(footprint) ? 'bg-primary/10 border-primary' : ''}`}>
+                  <div className={`flex-1 bg-background rounded-md overflow-hidden shadow-sm border border-border hover:bg-accent transition-colors ${highlightedFootprintId === footprint.id ? 'bg-accent/70' : ''} ${isFootprintSelected(footprint) ? 'bg-primary/10 border-primary' : ''}`}>
                     <div className="flex gap-3 p-3">
                       {isRoutePlanning && (
                         <input
@@ -173,7 +208,10 @@ const FootprintList: React.FC<FootprintListProps> = ({
       {filteredFootprints.map((footprint) => (
         <div
           key={footprint.id}
-          className={`p-3 rounded-md cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : isFootprintSelected(footprint) ? 'bg-primary/10 border-l-4 border-primary' : 'bg-background hover:bg-accent'}`}
+          id={`footprint-card-${footprint.id}`}
+          className={`p-3 rounded-md cursor-pointer transition-all ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : 
+                     highlightedFootprintId === footprint.id ? 'bg-accent/70' : 
+                     isFootprintSelected(footprint) ? 'bg-primary/10 border-l-4 border-primary' : 'bg-background hover:bg-accent'}`}
           onClick={() => handleFootprintSelect(footprint)}
         >
           <div className="flex flex-col gap-2">

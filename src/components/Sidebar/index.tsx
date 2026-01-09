@@ -111,6 +111,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     setGuideDescription('');
   };
 
+  // 开始路线预览
+  const handleStartPreview = () => {
+    // 触发路线预览事件
+    window.dispatchEvent(new CustomEvent('startRoutePreview'));
+  };
+
   // 生成分享海报
   const handleGeneratePoster = async () => {
     try {
@@ -482,6 +488,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   📸 生成海报
                 </button>
+                {selectedFootprints.length > 1 && (
+                  <button
+                    className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-accent text-accent-foreground hover:bg-accent/90 transition-colors"
+                    onClick={handleStartPreview}
+                  >
+                    🚶 开始预览
+                  </button>
+                )}
               </div>
             </div>
           )}

@@ -144,7 +144,7 @@ const MapEvents: React.FC<MapEventsProps> = ({ onMapClick, tempMarker, setTempMa
 };
 
 // 创建自定义图标，使用 lucide-react 的 MapPin 图标，并添加动画效果
-const createCustomIcon = (L: any, category: string) => {
+const createCustomIcon = (L: any, category: string, footprintId?: string) => {
   const colors: Record<string, string> = {
     '探店': '#ef4444',
     '户外': '#10b981',
@@ -160,10 +160,13 @@ const createCustomIcon = (L: any, category: string) => {
     <circle cx="12" cy="10" r="3" fill="${color}" stroke="white" stroke-width="2"/>
   </svg>`;
   
+  // 添加footprintId到HTML元素上
+  const footprintIdAttr = footprintId ? `data-footprint-id="${footprintId}"` : '';
+  
   return L.divIcon({
     // 添加动画类名
     className: 'custom-leaflet-marker marker-animate',
-    html: `<div class="marker-container animate-pop">${svgIcon}</div>`,
+    html: `<div class="marker-container animate-pop" ${footprintIdAttr}>${svgIcon}</div>`,
     iconSize: [28, 38],
     iconAnchor: [14, 38],
     popupAnchor: [0, -38],
@@ -243,6 +246,11 @@ const Map: React.FC<MapProps> = ({
     duration: number;
   } | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
+  // 路线预览相关状态
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const previewProgressRef = useRef(0);
+  const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -401,6 +409,97 @@ const Map: React.FC<MapProps> = ({
     }
   }, [selectedFootprints, walkingRoute, isClient]);
 
+  // 路线预览功能
+  useEffect(() => {
+    // 初始化语音合成
+    speechSynthesisRef.current = window.speechSynthesis;
+    
+    const handleStartRoutePreview = async () => {
+      if (selectedFootprints.length < 2 || !mapRef.current) {
+        return;
+      }
+      
+      setIsPreviewing(true);
+      previewProgressRef.current = 0;
+      
+      // 清除之前的定时器
+      if (previewIntervalRef.current) {
+        clearInterval(previewIntervalRef.current);
+        previewIntervalRef.current = null;
+      }
+      
+      // 开始路线预览
+      const startRoutePreview = async () => {
+        for (let i = 0; i < selectedFootprints.length; i++) {
+          const footprint = selectedFootprints[i];
+          
+          // 地图飞行到当前地点
+          await new Promise<void>((resolve) => {
+            mapRef.current?.flyTo(footprint.coordinates, 15, {
+              duration: 2,
+              easeLinearity: 0.25,
+              animate: true,
+              callback: () => {
+                resolve();
+              }
+            });
+          });
+          
+          // 触发Marker跳动动画
+          const markerElement = document.querySelector(`[data-footprint-id="${footprint.id}"] .marker-container`) as HTMLElement;
+          if (markerElement) {
+            markerElement.classList.remove('animate-bounce');
+            // 触发重排
+            void markerElement.offsetWidth;
+            markerElement.classList.add('animate-bounce');
+          }
+          
+          // 打开详情弹窗
+          setTargetFootprint(footprint);
+          
+          // 触发列表高亮
+          window.dispatchEvent(new CustomEvent('highlightFootprint', {
+            detail: { footprintId: footprint.id }
+          }));
+          
+          // 语音播报
+          if (speechSynthesisRef.current && 'speechSynthesis' in window) {
+            // 清空之前的语音队列
+            speechSynthesisRef.current.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(`正在经过：${footprint.name}`);
+            utterance.lang = 'zh-CN';
+            speechSynthesisRef.current.speak(utterance);
+          }
+          
+          // 等待2秒，然后继续到下一个地点
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
+        // 预览结束
+        setIsPreviewing(false);
+        previewProgressRef.current = 0;
+      };
+      
+      startRoutePreview();
+    };
+    
+    // 监听开始预览事件
+    window.addEventListener('startRoutePreview', handleStartRoutePreview);
+    
+    // 清理函数
+    return () => {
+      window.removeEventListener('startRoutePreview', handleStartRoutePreview);
+      if (previewIntervalRef.current) {
+        clearInterval(previewIntervalRef.current);
+        previewIntervalRef.current = null;
+      }
+      if (speechSynthesisRef.current) {
+        speechSynthesisRef.current.cancel();
+      }
+    };
+  }, [selectedFootprints, isClient]);
+
   if (loadError) {
     return (
       <div className="w-full h-full bg-slate-900 flex items-center justify-center p-6">
@@ -512,7 +611,7 @@ const Map: React.FC<MapProps> = ({
           <Marker 
             key={footprint.id} 
             position={footprint.coordinates} 
-            icon={createCustomIcon(L, footprint.category)}
+            icon={createCustomIcon(L, footprint.category, footprint.id)}
             eventHandlers={{
               click: () => {
                 console.log('Marker clicked:', footprint.name);
@@ -589,6 +688,23 @@ const Map: React.FC<MapProps> = ({
               opacity: 1;
               transform: translate(0, 0);
             }
+          }
+          
+          /* 弹跳动画 */
+          @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+              transform: translateY(0);
+            }
+            40% {
+              transform: translateY(-20px);
+            }
+            60% {
+              transform: translateY(-10px);
+            }
+          }
+          
+          .animate-bounce {
+            animation: bounce 1s ease-in-out;
           }
           
           /* 流动蚂蚁线动画 */
