@@ -69,6 +69,7 @@ interface SidebarProps {
   } | null) => void;
   guides?: Guide[];
   onLoadGuideRoute?: (guide: Guide) => void;
+  children?: React.ReactNode;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -88,7 +89,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onRoutePlanToggle,
   onWalkingRouteChange,
   guides = [],
-  onLoadGuideRoute
+  onLoadGuideRoute,
+  children
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('list');
@@ -402,6 +404,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             </Tabs.Content>
           </div>
         </Tabs.Root>
+        
+        {/* 渲染子组件 */}
+        {children}
       
       <div className="p-4 border-t border-border">
         <div className="flex gap-2">

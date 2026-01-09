@@ -448,42 +448,61 @@ const Map: React.FC<MapProps> = ({
         previewIntervalRef.current = null;
       }
       
-      // 立即执行地图飞行到第一个点，不依赖任何其他异步操作
-      const firstFootprint = selectedFootprints[0];
-      console.log(`Immediately flying to first footprint: ${firstFootprint.name}`);
-      
-      // 地图飞行到第一个地点
-      if (mapRef.current) {
-        mapRef.current.flyTo(firstFootprint.coordinates, 15, {
-          duration: 2,
-          easeLinearity: 0.25,
-          animate: true
-        });
-      }
-      
       // 开始路线预览
       const startRoutePreview = async () => {
         try {
-          // 等待1秒，然后继续下一个地点
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // 继续遍历其他足迹
-          for (let i = 1; i < selectedFootprints.length; i++) {
+          // 遍历所有足迹，从第一个点开始
+          for (let i = 0; i < selectedFootprints.length; i++) {
             const footprint = selectedFootprints[i];
             
             console.log(`Flying to footprint ${i + 1}: ${footprint.name}`);
             
-            // 地图飞行到当前地点
+            // 地图飞行到当前地点，使用onMoveEnd确保前一个动画完成
             await new Promise<void>((resolve) => {
               if (mapRef.current) {
+                // 确保移除之前的事件监听器，防止多个监听器累积
+                mapRef.current.off('moveend');
+                
+                // 为当前点的Marker添加跳动动画
+                const markerElement = document.querySelector(`[data-footprint-id="${footprint.id}"] .marker-container`) as HTMLElement;
+                if (markerElement) {
+                  markerElement.classList.remove('animate-bounce');
+                  // 触发重排
+                  void markerElement.offsetWidth;
+                  markerElement.classList.add('animate-bounce');
+                }
+                
+                // 打开详情弹窗
+                setTargetFootprint(footprint);
+                
+                // 触发列表高亮
+                window.dispatchEvent(new CustomEvent('highlightFootprint', {
+                  detail: { footprintId: footprint.id }
+                }));
+                
+                // 语音播报
+                if (speechSynthesisRef.current && 'speechSynthesis' in window) {
+                  // 清空之前的语音队列
+                  speechSynthesisRef.current.cancel();
+                  
+                  const utterance = new SpeechSynthesisUtterance(`正在经过：${footprint.name}`);
+                  utterance.lang = 'zh-CN';
+                  speechSynthesisRef.current.speak(utterance);
+                }
+                
+                // 使用onMoveEnd事件代替固定的setTimeout，确保动画完成
+                const onMoveEnd = () => {
+                  mapRef.current.off('moveend', onMoveEnd);
+                  console.log(`Arrived at ${footprint.name}`);
+                  resolve();
+                };
+                
+                mapRef.current.on('moveend', onMoveEnd);
+                
                 mapRef.current.flyTo(footprint.coordinates, 15, {
                   duration: 2,
                   easeLinearity: 0.25,
-                  animate: true,
-                  callback: () => {
-                    console.log(`Arrived at ${footprint.name}`);
-                    resolve();
-                  }
+                  animate: true
                 });
               } else {
                 console.error('Map ref is null during flyTo');
@@ -491,35 +510,10 @@ const Map: React.FC<MapProps> = ({
               }
             });
             
-            // 触发Marker跳动动画
-            const markerElement = document.querySelector(`[data-footprint-id="${footprint.id}"] .marker-container`) as HTMLElement;
-            if (markerElement) {
-              markerElement.classList.remove('animate-bounce');
-              // 触发重排
-              void markerElement.offsetWidth;
-              markerElement.classList.add('animate-bounce');
+            // 如果不是最后一个点，等待2秒
+            if (i < selectedFootprints.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 2000));
             }
-            
-            // 打开详情弹窗
-            setTargetFootprint(footprint);
-            
-            // 触发列表高亮
-            window.dispatchEvent(new CustomEvent('highlightFootprint', {
-              detail: { footprintId: footprint.id }
-            }));
-            
-            // 语音播报
-            if (speechSynthesisRef.current && 'speechSynthesis' in window) {
-              // 清空之前的语音队列
-              speechSynthesisRef.current.cancel();
-              
-              const utterance = new SpeechSynthesisUtterance(`正在经过：${footprint.name}`);
-              utterance.lang = 'zh-CN';
-              speechSynthesisRef.current.speak(utterance);
-            }
-            
-            // 等待2秒，然后继续到下一个地点
-            await new Promise(resolve => setTimeout(resolve, 2000));
           }
         } catch (error) {
           console.error('Error during route preview:', error);
@@ -528,6 +522,10 @@ const Map: React.FC<MapProps> = ({
           console.log('Route preview completed');
           setIsPreviewing(false);
           previewProgressRef.current = 0;
+          // 确保移除所有moveend事件监听器
+          if (mapRef.current) {
+            mapRef.current.off('moveend');
+          }
         }
       };
       
@@ -544,6 +542,9 @@ const Map: React.FC<MapProps> = ({
       if (previewIntervalRef.current) {
         clearInterval(previewIntervalRef.current);
         previewIntervalRef.current = null;
+      }
+      if (mapRef.current) {
+        mapRef.current.off('moveend');
       }
       if (speechSynthesisRef.current) {
         speechSynthesisRef.current.cancel();
@@ -592,7 +593,9 @@ const Map: React.FC<MapProps> = ({
         zoom={zoom}
         className="w-full h-full"
         style={{ height: '100%', width: '100%', pointerEvents: 'auto', zIndex: 1 }}
-        ref={mapRef}
+        ref={(map) => {
+          mapRef.current = map;
+        }}
         doubleClickZoom={true}
         whenReady={() => {
           setIsMapReady(true);
