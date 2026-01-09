@@ -154,7 +154,16 @@ const Sidebar: React.FC<SidebarProps> = ({
     window.dispatchEvent(new CustomEvent('startRoutePreview'));
   }; */
 
-  // 生成分享海报功能已移除，因为html2canvas依赖问题
+  // 海报风格状态
+  const [posterStyle, setPosterStyle] = useState<'film' | 'minimal'>('film');
+  
+  // 模拟海报生成功能 - 支持不同风格
+  const handleGeneratePoster = (style: 'film' | 'minimal') => {
+    setPosterStyle(style);
+    console.log(`生成${style === 'film' ? '电影底片' : '极简杂志'}风格海报`);
+    // 这里可以添加实际的海报生成逻辑，使用html2canvas等库
+    alert(`已切换为${style === 'film' ? '电影底片' : '极简杂志'}风格海报`);
+  };
 
   if (isCollapsed) {
     return (
@@ -306,9 +315,14 @@ const Sidebar: React.FC<SidebarProps> = ({
               <p className="text-center mt-2">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</p>
             ) : null}
             
-            {/* 天气小贴士 - 静态展示 */}
+            {/* 沿途天气预览 - 动态云朵图标 */}
             <div className="mt-2">
-              <p className="text-center text-gray-300">☀️ 20°C</p>
+              <p className="text-center text-gray-300 flex items-center justify-center gap-2 animate-clouds">
+                <span className="inline-block animate-pulse">☁️</span>
+                <span className="inline-block animate-pulse" style={{ animationDelay: '0.5s' }}>☁️</span>
+                <span className="inline-block animate-pulse" style={{ animationDelay: '1s' }}>☁️</span>
+                <span className="ml-2">18-22°C</span>
+              </p>
             </div>
             
             <div className="mt-3 flex justify-center gap-2">
@@ -411,8 +425,29 @@ const Sidebar: React.FC<SidebarProps> = ({
         {children}
       </div>
       
+      {/* 海报风格选择 */}
+      <div className="p-4 border-t border-slate-700 bg-[#0f172a] flex-shrink-0">
+        <h3 className="text-sm font-medium text-white mb-2">生成海报</h3>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => handleGeneratePoster('film')}
+            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-colors text-sm border ${posterStyle === 'film' ? 'border-primary bg-primary/20 text-primary' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white'}`}
+          >
+            <span className="text-lg">🎬</span>
+            <span>电影底片</span>
+          </button>
+          <button
+            onClick={() => handleGeneratePoster('minimal')}
+            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-colors text-sm border ${posterStyle === 'minimal' ? 'border-primary bg-primary/20 text-primary' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white'}`}
+          >
+            <span className="text-lg">📸</span>
+            <span>极简杂志</span>
+          </button>
+        </div>
+      </div>
+      
       {/* 底部区域 - 固定高度，吸附在底部 */}
-      <div className="p-4 border-t border-slate-700 bg-[#0f172a]">
+      <div className="p-4 border-t border-slate-700 bg-[#0f172a] flex-shrink-0">
         <div className="flex gap-2">
           <button
             onClick={handleExportClick}

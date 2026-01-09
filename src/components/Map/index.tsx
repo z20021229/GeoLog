@@ -423,8 +423,8 @@ const Map: React.FC<MapProps> = ({
   
   // 移除天气相关的检查逻辑
 
-  // 路线预览功能 - 暂时注释掉
-  /* useEffect(() => {
+  // 路线预览功能 - 启用并优化平滑曲线
+  useEffect(() => {
     // 初始化语音合成
     speechSynthesisRef.current = window.speechSynthesis;
     
@@ -499,10 +499,13 @@ const Map: React.FC<MapProps> = ({
                 
                 mapRef.current.on('moveend', onMoveEnd);
                 
+                // 优化flyTo参数，添加优雅的弧度和更平滑的曲线
                 mapRef.current.flyTo(footprint.coordinates, 15, {
-                  duration: 3,
-                  easeLinearity: 0.25,
-                  animate: true
+                  duration: 4, // 增加动画时间，使飞行更平滑
+                  easeLinearity: 0.1, // 减少线性度，使曲线更优雅
+                  animate: true,
+                  // 使用easeInOutQuad缓动函数，使动画开始和结束更平滑
+                  easeFn: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t // 缓动函数
                 });
               } else {
                 console.error('Map ref is null during flyTo');
@@ -550,7 +553,7 @@ const Map: React.FC<MapProps> = ({
         speechSynthesisRef.current.cancel();
       }
     };
-  }, [selectedFootprints, isClient]); */
+  }, [selectedFootprints, isClient]);
 
   if (loadError) {
     return (
