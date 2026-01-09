@@ -159,27 +159,27 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   if (isCollapsed) {
     return (
-      <div className={`bg-card border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-16`}>
-        <div className="flex items-center justify-between p-4 border-b border-border flex-none">
+      <div className="fixed left-0 top-0 h-[100vh] w-16 bg-[#0f172a] border-r border-slate-700 z-[1000] transition-all duration-300 ease-in-out overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-slate-700 flex-none">
           <button
             onClick={onToggle}
-            className="p-2 rounded-full hover:bg-accent transition-colors mx-auto"
+            className="p-2 rounded-full hover:bg-gray-700/50 transition-colors mx-auto"
           >
-            <Menu size={20} />
+            <Menu size={20} className="text-white" />
           </button>
         </div>
-        <div className="p-2 flex flex-col items-center gap-2">
-          <div className="text-xs text-muted-foreground text-center py-2">
+        <div className="p-2 flex flex-col items-center gap-2 overflow-y-auto">
+          <div className="text-xs text-gray-400 text-center py-2">
             {footprints.length} 足迹
           </div>
           {footprints.map((footprint) => (
             <div
               key={footprint.id}
-              className={`p-3 rounded-md cursor-pointer transition-all flex items-center justify-center ${selectedFootprintId === footprint.id ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent'}`}
+              className={`p-3 rounded-md cursor-pointer transition-all flex items-center justify-center ${selectedFootprintId === footprint.id ? 'bg-blue-500 text-white' : 'bg-gray-800/50 hover:bg-gray-700/50'}`}
               onClick={() => onSelectFootprint(footprint)}
               title={footprint.name}
             >
-              <MapPin size={20} />
+              <MapPin size={20} className="text-white" />
             </div>
           ))}
         </div>
@@ -188,8 +188,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className="w-80 h-screen bg-[#0f172a] shadow-2xl z-[50] flex flex-col relative">
-      {/* 添加统计面板样式 */}
+    <div className="fixed left-0 top-0 w-[320px] h-[100vh] flex flex-col bg-[#0f172a] z-[1000] border-r border-slate-700">
+      {/* 路线统计面板样式 */}
       <style jsx>{`
         /* 给统计面板增加明显的视觉区分 */
         .route-stats-container {
@@ -202,17 +202,18 @@ const Sidebar: React.FC<SidebarProps> = ({
           font-size: 0.875rem;
         }
       `}</style>
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <h1 className="text-xl font-bold">GeoLog</h1>
+      <div className="flex items-center justify-between p-4 border-b border-slate-700">
+        <h1 className="text-xl font-bold text-white">GeoLog</h1>
         <button
           onClick={onToggle}
-          className="p-2 rounded-full hover:bg-accent transition-colors"
+          className="p-2 rounded-full hover:bg-gray-700/50 transition-colors"
         >
-          <X size={20} />
+          <X size={20} className="text-white" />
         </button>
       </div>
 
-      <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="flex flex-col flex-1">
+      {/* 固定的Tab切换 */}
+      <Tabs.Root defaultValue="list" onValueChange={setActiveTab}>
           <Tabs.List className="flex gap-2 p-2 bg-gray-800/50 rounded-full mx-4 my-2">
             <Tabs.Trigger
               value="list"
@@ -236,194 +237,196 @@ const Sidebar: React.FC<SidebarProps> = ({
               我的攻略
             </Tabs.Trigger>
           </Tabs.List>
+      </Tabs.Root>
 
-          {/* 路线规划按钮 */}
-          <div className="p-4 border-b border-border">
-            {isDetailMode ? (
-              <div className="flex gap-2">
-                <button
-                  className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-primary text-primary-foreground hover:bg-primary/90 justify-center"
-                  onClick={handleRoutePlanToggle}
-                >
-                  <Route size={16} />
-                  进入编辑模式
-                </button>
-              </div>
-            ) : isRoutePlanning ? (
-              <div className="flex gap-2">
-                <button
-                  className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-primary text-primary-foreground hover:bg-primary/90 justify-center"
-                  onClick={handleRoutePlanToggle}
-                >
-                  <Route size={16} />
-                  退出路线规划
-                </button>
-                <button
-                  className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/90 justify-center"
-                  onClick={handleSaveGuideClick}
-                >
-                  <Save size={16} />
-                  保存攻略
-                </button>
-              </div>
-            ) : (
+      {/* 路线规划按钮 */}
+      <div className="p-4 border-b border-gray-700">
+        {isDetailMode ? (
+          <div className="flex gap-2">
+            <button
+              className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-primary text-primary-foreground hover:bg-primary/90 justify-center"
+              onClick={handleRoutePlanToggle}
+            >
+              <Route size={16} />
+              进入编辑模式
+            </button>
+          </div>
+        ) : isRoutePlanning ? (
+          <div className="flex gap-2">
+            <button
+              className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-primary text-primary-foreground hover:bg-primary/90 justify-center"
+              onClick={handleRoutePlanToggle}
+            >
+              <Route size={16} />
+              退出路线规划
+            </button>
+            <button
+              className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/90 justify-center"
+              onClick={handleSaveGuideClick}
+            >
+              <Save size={16} />
+              保存攻略
+            </button>
+          </div>
+        ) : (
+          <button
+            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/90 w-full justify-center`}
+            onClick={handleRoutePlanToggle}
+          >
+            <Route size={16} />
+            规划路线
+          </button>
+        )}
+      </div>
+
+      {/* 路线统计面板 */}
+      {(isRoutePlanning || isDetailMode) && selectedFootprints.length > 0 && (
+        <div className="route-stats-container">
+          <p className="text-center">已选 {selectedFootprints.length} 个点</p>
+          {walkingRoute ? (
+            <div className="mt-2">
+              <p className="text-center">🚶 预计步行: {formatOSRMDistance(walkingRoute.distance)} | ⏱️ 约 {(walkingRoute.distance / 1000 / 5).toFixed(1)} 小时</p>
+            </div>
+          ) : selectedFootprints.length > 1 ? (
+            <p className="text-center mt-2">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</p>
+          ) : null}
+          
+          {/* 天气小贴士 - 静态展示 */}
+          <div className="mt-2">
+            <p className="text-center text-gray-300">☀️ 20°C</p>
+          </div>
+          
+          <div className="mt-3 flex justify-center gap-2">
+            {isRoutePlanning && selectedFootprints.length > 2 && (
               <button
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/90 w-full justify-center`}
-                onClick={handleRoutePlanToggle}
+                className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                onClick={async () => {
+                  try {
+                    // 调用OSRM的trip接口获取优化路径
+                    const coordinates = selectedFootprints.map(fp => fp.coordinates);
+                    const tripResult = await getOSRMTripRoute(coordinates);
+                    
+                    if (tripResult) {
+                      // 根据优化后的顺序重新排列足迹
+                      const optimizedFootprints = tripResult.optimizedOrder.map(idx => selectedFootprints[idx]);
+                      // 更新选中的足迹顺序，触发路径重新渲染
+                      onRoutePlanChange?.(optimizedFootprints);
+                      // 如果有路线更新回调，直接传递优化后的路径
+                      if (onWalkingRouteChange) {
+                        onWalkingRouteChange({
+                          path: tripResult.path,
+                          distance: tripResult.distance,
+                          duration: tripResult.duration
+                        });
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Error optimizing route:', error);
+                  }
+                }}
               >
-                <Route size={16} />
-                规划路线
+                ✨ 优化顺序
               </button>
             )}
+            {/* 开始预览按钮 - 暂时注释掉
+            {(isRoutePlanning || isDetailMode) && (
+              <button
+                className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors"
+                onClick={handleStartPreview}
+              >
+                🚶 开始预览
+              </button>
+            )} */}
           </div>
+        </div>
+      )}
+      
+      {/* 内容区域：设置为overflow-y: scroll，并填充剩余空间 */}
+      <div className="flex-1 overflow-y-scroll scrollbar-width:thin p-4">
+        <Tabs.Root defaultValue="list" onValueChange={setActiveTab}>
+          {/* 足迹列表 */}
+          <Tabs.Content value="list" className="space-y-2">
+            <ErrorBoundary>
+              <FootprintList 
+                footprints={footprints} 
+                selectedFootprintId={selectedFootprintId} 
+                onSelectFootprint={onSelectFootprint} 
+                isRoutePlanning={isRoutePlanning}
+                selectedFootprints={selectedFootprints}
+                onRoutePlanChange={onRoutePlanChange}
+              />
+            </ErrorBoundary>
+          </Tabs.Content>
 
-          {/* 路线统计面板 */}
-          {(isRoutePlanning || isDetailMode) && selectedFootprints.length > 0 && (
-            <div className="route-stats-container">
-              <p className="text-center">已选 {selectedFootprints.length} 个点</p>
-              {walkingRoute ? (
-                <div className="mt-2">
-                  <p className="text-center">🚶 预计步行: {formatOSRMDistance(walkingRoute.distance)} | ⏱️ 约 {(walkingRoute.distance / 1000 / 5).toFixed(1)} 小时</p>
-                </div>
-              ) : selectedFootprints.length > 1 ? (
-                <p className="text-center mt-2">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</p>
-              ) : null}
-              
-              {/* 天气小贴士 - 静态展示 */}
-              <div className="mt-2">
-                <p className="text-center text-gray-300">☀️ 20°C</p>
-              </div>
-              
-              <div className="mt-3 flex justify-center gap-2">
-                {isRoutePlanning && selectedFootprints.length > 2 && (
-                  <button
-                    className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                    onClick={async () => {
-                      try {
-                        // 调用OSRM的trip接口获取优化路径
-                        const coordinates = selectedFootprints.map(fp => fp.coordinates);
-                        const tripResult = await getOSRMTripRoute(coordinates);
-                        
-                        if (tripResult) {
-                          // 根据优化后的顺序重新排列足迹
-                          const optimizedFootprints = tripResult.optimizedOrder.map(idx => selectedFootprints[idx]);
-                          // 更新选中的足迹顺序，触发路径重新渲染
-                          onRoutePlanChange?.(optimizedFootprints);
-                          // 如果有路线更新回调，直接传递优化后的路径
-                          if (onWalkingRouteChange) {
-                            onWalkingRouteChange({
-                              path: tripResult.path,
-                              distance: tripResult.distance,
-                              duration: tripResult.duration
-                            });
-                          }
-                        }
-                      } catch (error) {
-                        console.error('Error optimizing route:', error);
-                      }
-                    }}
-                  >
-                    ✨ 优化顺序
-                  </button>
-                )}
-                {/* 开始预览按钮 - 暂时注释掉
-                {(isRoutePlanning || isDetailMode) && (
-                  <button
-                    className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors"
-                    onClick={handleStartPreview}
-                  >
-                    🚶 开始预览
-                  </button>
-                )} */}
-              </div>
-            </div>
-          )}
+          {/* 数据统计 */}
+          <Tabs.Content value="statistics" className="space-y-2">
+            <ErrorBoundary>
+              <StatisticsPanel footprints={footprints} />
+            </ErrorBoundary>
+          </Tabs.Content>
           
-          {/* 内容区域：设置为overflow-y: auto，并填充剩余空间 */}
-          <div className="flex-1 overflow-y-auto p-4">
-            {/* 足迹列表 */}
-            <Tabs.Content value="list" className="space-y-2">
-              <ErrorBoundary>
-                <FootprintList 
-                  footprints={footprints} 
-                  selectedFootprintId={selectedFootprintId} 
-                  onSelectFootprint={onSelectFootprint} 
-                  isRoutePlanning={isRoutePlanning}
-                  selectedFootprints={selectedFootprints}
-                  onRoutePlanChange={onRoutePlanChange}
-                />
-              </ErrorBoundary>
-            </Tabs.Content>
-
-            {/* 数据统计 */}
-            <Tabs.Content value="statistics" className="space-y-2">
-              <ErrorBoundary>
-                <StatisticsPanel footprints={footprints} />
-              </ErrorBoundary>
-            </Tabs.Content>
-            
-            {/* 我的攻略 */}
-            <Tabs.Content value="guides" className="space-y-4">
-              <ErrorBoundary>
-                <div>
-                  <h2 className="text-lg font-bold mb-4">我的攻略</h2>
-                  <p className="text-sm text-muted-foreground mb-4">已保存的史诗旅程</p>
-                  
-                  {/* 真实攻略列表 */}
-                  {guides.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>暂无保存的攻略</p>
-                      <p className="text-xs mt-2">在路线规划模式下保存攻略后，将显示在这里</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {guides.map((guide) => (
-                        <div 
-                          key={guide.id}
-                          className="p-4 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border mb-4"
-                          onClick={() => {
-                            // 加载攻略路线
-                            onLoadGuideRoute?.(guide);
-                          }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium">{guide.name}</h3>
-                            <span className="text-sm text-muted-foreground">{(guide.distance / 1000).toFixed(1)}公里</span>
-                          </div>
-                          {guide.description && (
-                            <p className="text-xs text-muted-foreground mt-1 truncate">{guide.description}</p>
-                          )}
-                          <p className="text-xs text-muted-foreground mt-1">
-                            包含{guide.footprints.length}个地点，预计耗时{formatTime(guide.duration)}
-                          </p>
+          {/* 我的攻略 */}
+          <Tabs.Content value="guides" className="space-y-4">
+            <ErrorBoundary>
+              <div>
+                <h2 className="text-lg font-bold mb-4 text-white">我的攻略</h2>
+                <p className="text-sm text-gray-400 mb-4">已保存的史诗旅程</p>
+                
+                {/* 真实攻略列表 */}
+                {guides.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <p>暂无保存的攻略</p>
+                    <p className="text-xs mt-2">在路线规划模式下保存攻略后，将显示在这里</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {guides.map((guide) => (
+                      <div 
+                        key={guide.id}
+                        className="p-4 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors border border-gray-700 mb-4"
+                        onClick={() => {
+                          // 加载攻略路线
+                          onLoadGuideRoute?.(guide);
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-white">{guide.name}</h3>
+                          <span className="text-sm text-gray-400">{(guide.distance / 1000).toFixed(1)}公里</span>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </ErrorBoundary>
-            </Tabs.Content>
-          </div>
+                        {guide.description && (
+                          <p className="text-xs text-gray-500 mt-1 truncate">{guide.description}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">
+                          包含{guide.footprints.length}个地点，预计耗时{formatTime(guide.duration)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ErrorBoundary>
+          </Tabs.Content>
         </Tabs.Root>
+      </div>
         
         {/* 渲染子组件 */}
         {children}
       
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-slate-700">
         <div className="flex gap-2">
           <button
             onClick={handleExportClick}
-            className="flex items-center justify-center gap-2 flex-1 bg-primary text-primary-foreground hover:bg-primary/90 p-2 rounded-md transition-colors text-sm"
+            className="flex items-center justify-center gap-2 flex-1 bg-gray-800/50 hover:bg-gray-700/50 p-2 rounded-md transition-colors text-sm border border-gray-700 text-white"
           >
-            <Download size={14} />
-            <span>导出</span>
+            <Download size={14} className="text-white" />
+            <span className="text-white">导出</span>
           </button>
           <button
             onClick={handleImportClick}
-            className="flex items-center justify-center gap-2 flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/90 p-2 rounded-md transition-colors text-sm"
+            className="flex items-center justify-center gap-2 flex-1 bg-gray-800/50 hover:bg-gray-700/50 p-2 rounded-md transition-colors text-sm border border-gray-700 text-white"
           >
-            <Upload size={14} />
-            <span>导入</span>
+            <Upload size={14} className="text-white" />
+            <span className="text-white">导入</span>
           </button>
         </div>
         <input
