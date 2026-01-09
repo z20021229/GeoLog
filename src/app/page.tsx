@@ -4,7 +4,7 @@ import React, { useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Sidebar from '../components/Sidebar';
 import AddFootprintDialog from '../components/Dialog/AddFootprintDialog';
-import { Footprint, FootprintFormData } from '../types';
+import { Footprint, FootprintFormData, Guide } from '../types';
 import { useFootprints } from '../hooks/useFootprints';
 
 // 使用 next/dynamic 动态导入地图组件，避免 SSR 错误
@@ -15,7 +15,7 @@ const Map = dynamic(() => import('../components/Map'), {
 
 const Home: React.FC = () => {
   // 使用自定义钩子管理足迹数据
-  const { footprints, handleAddFootprint, handleExportData, handleImportData } = useFootprints();
+  const { footprints, guides, handleAddFootprint, handleExportData, handleImportData, handleSaveGuide } = useFootprints();
 
   // 状态管理
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -81,52 +81,27 @@ const Home: React.FC = () => {
   };
 
   // 处理从攻略库加载路线
-  const handleLoadGuideRoute = (routeType: '96km' | '500km') => {
-    // 模拟加载不同长度的路线
-    const mockFootprints: Footprint[] = [];
-    
-    if (routeType === '96km') {
-      // 模拟96公里路线，创建12个随机足迹点
-      for (let i = 0; i < 12; i++) {
-        // 创建大致围绕北京的随机坐标
-        const lat = 39.9042 + (Math.random() - 0.5) * 0.5;
-        const lng = 116.4074 + (Math.random() - 0.5) * 0.5;
-        
-        mockFootprints.push({
-          id: `mock-${Date.now()}-${i}`,
-          name: `地点 ${i + 1}`,
-          location: `模拟位置 ${i + 1}`,
-          coordinates: [lat, lng],
-          description: `这是96公里路线的第${i + 1}个地点`,
-          category: '户外',
-          date: new Date().toISOString().split('T')[0],
-          createdAt: Date.now(),
-        });
-      }
-    } else {
-      // 模拟500公里路线，创建25个随机足迹点，范围更大
-      for (let i = 0; i < 25; i++) {
-        // 创建更大范围的随机坐标，模拟长途路线
-        const lat = 39.9042 + (Math.random() - 0.5) * 5;
-        const lng = 116.4074 + (Math.random() - 0.5) * 5;
-        
-        mockFootprints.push({
-          id: `mock-${Date.now()}-${i}`,
-          name: `长途地点 ${i + 1}`,
-          location: `长途位置 ${i + 1}`,
-          coordinates: [lat, lng],
-          description: `这是500公里路线的第${i + 1}个地点`,
-          category: '户外',
-          date: new Date().toISOString().split('T')[0],
-          createdAt: Date.now(),
-        });
-      }
-    }
-    
+  const handleLoadGuideRoute = (guide: Guide) => {
     // 进入路线规划模式
     setIsRoutePlanning(true);
+    // 清空当前视图
+    setSelectedFootprints([]);
     // 设置选中的足迹
-    setSelectedFootprints(mockFootprints);
+    setSelectedFootprints(guide.footprints);
+  };
+
+  // 处理保存攻略
+  const handleSaveGuideRoute = (name: string, description: string) => {
+    if (selectedFootprints.length === 0) {
+      alert('请先选择足迹点才能保存攻略');
+      return;
+    }
+    
+    const distance = walkingRoute ? walkingRoute.distance : 0;
+    const duration = walkingRoute ? walkingRoute.duration : 0;
+    
+    handleSaveGuide(name, description, selectedFootprints, distance, duration);
+    alert('攻略保存成功！');
   };
 
   return (
@@ -146,7 +121,9 @@ const Home: React.FC = () => {
         isRoutePlanning={isRoutePlanning}
         onRoutePlanToggle={handleRoutePlanToggle}
         onWalkingRouteChange={handleWalkingRouteChange}
+        guides={guides}
         onLoadGuideRoute={handleLoadGuideRoute}
+        onSaveGuide={handleSaveGuideRoute}
       />
       
       {/* Main Content - Map */}

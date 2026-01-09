@@ -23,3 +23,20 @@ export interface FootprintFormData {
   category: FootprintCategory;
   image?: string;        // Base64 格式的图片数据（可选）
 }
+
+// 攻略数据结构
+export interface Guide {
+  id: string;           // 唯一ID
+  name: string;         // 攻略名称
+  distance: number;     // 路线距离（米）
+  duration: number;     // 预计耗时（秒）
+  footprints: Footprint[]; // 包含的足迹列表
+  createdAt: number;    // 创建时间戳
+  description?: string; // 攻略描述
+}
+
+// 攻略表单数据
+export interface GuideFormData {
+  name: string;
+  description?: string;
+}

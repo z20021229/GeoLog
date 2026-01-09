@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { Menu, X, Download, Upload, List, BarChart3, MapPin, Route, Plus, Save } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
-import { Footprint } from '../../types';
+import { Footprint, Guide } from '../../types';
 import { calculateTotalDistance, formatDistance } from '../../utils/distance';
 import { formatOSRMDistance, formatTime, getOSRMTripRoute } from '../../utils/osrm';
 import StatisticsPanel from './StatisticsPanel';
@@ -24,7 +24,7 @@ interface SidebarProps {
     distance: number;
     duration: number;
   } | null;
-  onSaveRoute?: () => void;
+  onSaveGuide?: (name: string, description: string) => void;
   isRoutePlanning: boolean;
   onRoutePlanToggle: () => void;
   onWalkingRouteChange?: (route: {
@@ -32,7 +32,8 @@ interface SidebarProps {
     distance: number;
     duration: number;
   } | null) => void;
-  onLoadGuideRoute?: (routeType: '96km' | '500km') => void;
+  guides?: Guide[];
+  onLoadGuideRoute?: (guide: Guide) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -46,14 +47,20 @@ const Sidebar: React.FC<SidebarProps> = ({
   onRoutePlanChange,
   selectedFootprints = [],
   walkingRoute = null,
-  onSaveRoute,
+  onSaveGuide,
   isRoutePlanning,
   onRoutePlanToggle,
   onWalkingRouteChange,
+  guides = [],
   onLoadGuideRoute
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('list');
+
+  // 添加保存攻略的状态
+  const [showSaveGuideDialog, setShowSaveGuideDialog] = useState(false);
+  const [guideName, setGuideName] = useState('');
+  const [guideDescription, setGuideDescription] = useState('');
 
   const handleExportClick = () => {
     onExportData();
@@ -78,8 +85,30 @@ const Sidebar: React.FC<SidebarProps> = ({
     onRoutePlanToggle();
   };
 
-  const handleSaveRoute = () => {
-    onSaveRoute?.();
+  // 处理保存攻略
+  const handleSaveGuideClick = () => {
+    if (onSaveGuide) {
+      setShowSaveGuideDialog(true);
+    }
+  };
+
+  // 确认保存攻略
+  const handleConfirmSaveGuide = () => {
+    if (guideName.trim() && onSaveGuide) {
+      onSaveGuide(guideName, guideDescription);
+      setShowSaveGuideDialog(false);
+      setGuideName('');
+      setGuideDescription('');
+    } else {
+      alert('请输入攻略名称');
+    }
+  };
+
+  // 取消保存攻略
+  const handleCancelSaveGuide = () => {
+    setShowSaveGuideDialog(false);
+    setGuideName('');
+    setGuideDescription('');
   };
 
   if (isCollapsed) {
@@ -176,11 +205,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </button>
                 <button
                   className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/90 justify-center"
-                  onClick={() => {
-                    // 模拟保存攻略功能
-                    const distance = walkingRoute ? walkingRoute.distance / 1000 : calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)) / 1000;
-                    alert(`已将这趟 ${distance.toFixed(1)}km 的史诗旅程存入你的攻略库！`);
-                  }}
+                  onClick={handleSaveGuideClick}
                 >
                   <Save size={16} />
                   保存攻略
@@ -267,58 +292,42 @@ const Sidebar: React.FC<SidebarProps> = ({
               <h2 className="text-lg font-bold mb-4">我的攻略</h2>
               <p className="text-sm text-muted-foreground mb-4">已保存的史诗旅程</p>
               
-              {/* 模拟攻略数据 */}
-          <div className="space-y-3">
-            {/* 96公里路线 */}
-            <div 
-              className="p-3 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border"
-              onClick={() => {
-                // 加载96公里路线
-                onLoadGuideRoute?.('96km');
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium">96公里城市探索</h3>
-                <span className="text-sm text-muted-foreground">96.0公里</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">包含12个地点，预计耗时18小时</p>
+              {/* 真实攻略列表 */}
+          {guides.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>暂无保存的攻略</p>
+              <p className="text-xs mt-2">在路线规划模式下保存攻略后，将显示在这里</p>
             </div>
-            
-            {/* 500公里路线 */}
-            <div 
-              className="p-3 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border"
-              onClick={() => {
-                // 加载500公里路线
-                onLoadGuideRoute?.('500km');
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium">500公里长途跋涉</h3>
-                <span className="text-sm text-muted-foreground">500.0公里</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">包含25个地点，预计耗时100小时</p>
+          ) : (
+            <div className="space-y-3">
+              {guides.map((guide) => (
+                <div 
+                  key={guide.id}
+                  className="p-3 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border"
+                  onClick={() => {
+                    // 加载攻略路线
+                    onLoadGuideRoute?.(guide);
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium">{guide.name}</h3>
+                    <span className="text-sm text-muted-foreground">{(guide.distance / 1000).toFixed(1)}公里</span>
+                  </div>
+                  {guide.description && (
+                    <p className="text-xs text-muted-foreground mt-1 truncate">{guide.description}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    包含{guide.footprints.length}个地点，预计耗时{formatTime(guide.duration)}
+                  </p>
+                </div>
+              ))}
             </div>
-            
-            {/* 其他示例路线 */}
-            <div 
-              className="p-3 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border"
-              onClick={() => {
-                // 模拟加载其他路线
-                alert('加载周末短途游路线...');
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium">周末短途游</h3>
-                <span className="text-sm text-muted-foreground">15.5公里</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">包含5个地点，预计耗时3小时</p>
-            </div>
-          </div>
+          )}
             </div>
           </Tabs.Content>
         </Tabs.Root>
       </div>
-
+      
       <div className="mt-auto p-4 border-t border-border">
         <div className="flex gap-2">
           <button
@@ -344,6 +353,50 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="hidden"
         />
       </div>
+      
+      {/* 保存攻略对话框 */}
+      {showSaveGuideDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
+          <div className="bg-card p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">保存攻略</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">攻略名称</label>
+                <input
+                  type="text"
+                  value={guideName}
+                  onChange={(e) => setGuideName(e.target.value)}
+                  placeholder="输入攻略名称"
+                  className="w-full p-2 border border-border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">攻略描述（可选）</label>
+                <textarea
+                  value={guideDescription}
+                  onChange={(e) => setGuideDescription(e.target.value)}
+                  placeholder="输入攻略描述"
+                  className="w-full p-2 border border-border rounded-md h-20"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={handleCancelSaveGuide}
+                  className="px-4 py-2 border border-border rounded-md hover:bg-accent transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleConfirmSaveGuide}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                >
+                  保存
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

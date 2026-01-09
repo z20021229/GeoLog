@@ -75,6 +75,52 @@ const MapEvents: React.FC<MapEventsProps> = ({ onMapClick, tempMarker, setTempMa
       }, 1000);
     },
     
+    // 鼠标右键点击，弹出添加足迹菜单
+    contextmenu: (e) => {
+      e.originalEvent.preventDefault(); // 阻止默认右键菜单
+      const latlng: [number, number] = [e.latlng.lat, e.latlng.lng];
+      
+      // 创建自定义右键菜单
+      const menu = document.createElement('div');
+      menu.className = 'custom-context-menu';
+      menu.style.cssText = `
+        position: absolute;
+        top: ${e.containerPoint.y}px;
+        left: ${e.containerPoint.x}px;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        cursor: pointer;
+      `;
+      
+      // 添加菜单项
+      const menuItem = document.createElement('div');
+      menuItem.textContent = '在此处添加足迹';
+      menuItem.style.cssText = `
+        padding: 8px 16px;
+        font-size: 14px;
+        color: #333;
+      `;
+      menuItem.addEventListener('click', () => {
+        onMapClick(latlng);
+        document.body.removeChild(menu);
+      });
+      menu.appendChild(menuItem);
+      
+      // 添加到文档
+      document.body.appendChild(menu);
+      
+      // 点击其他地方关闭菜单
+      const closeMenu = () => {
+        document.body.removeChild(menu);
+        document.removeEventListener('click', closeMenu);
+      };
+      document.addEventListener('click', closeMenu);
+    },
+    
     // 鼠标松开，清除计时器
     mouseup: () => {
       if (longPressTimerRef.current) {

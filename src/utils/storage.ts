@@ -1,7 +1,8 @@
-import { Footprint } from '../types';
+import { Footprint, Guide } from '../types';
 
 // localStorage 键名
 const STORAGE_KEY = 'geolog_footprints';
+const GUIDE_STORAGE_KEY = 'geolog_guides';
 
 // 检查是否在浏览器环境中
 const isBrowser = typeof window !== 'undefined';
@@ -140,4 +141,90 @@ export const importFootprints = (file: File): Promise<boolean> => {
     
     reader.readAsText(file);
   });
+};
+
+// ---------------------------
+// 攻略数据相关函数
+// ---------------------------
+
+// 从 localStorage 读取攻略数据
+export const getGuides = (): Guide[] => {
+  try {
+    if (isBrowser) {
+      const stored = localStorage.getItem(GUIDE_STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    }
+    return [];
+  } catch (error) {
+    console.error('读取攻略数据失败:', error);
+    return [];
+  }
+};
+
+// 将攻略数据写入 localStorage
+export const saveGuides = (guides: Guide[]): void => {
+  try {
+    if (isBrowser) {
+      localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(guides));
+    }
+  } catch (error) {
+    console.error('保存攻略数据失败:', error);
+  }
+};
+
+// 添加新攻略
+export const addGuide = (guide: Omit<Guide, 'id' | 'createdAt'>): Guide => {
+  const newGuide: Guide = {
+    ...guide,
+    id: crypto.randomUUID(),
+    createdAt: Date.now(),
+  };
+  
+  const guides = getGuides();
+  guides.push(newGuide);
+  saveGuides(guides);
+  
+  return newGuide;
+};
+
+// 根据 ID 获取单个攻略
+export const getGuideById = (id: string): Guide | undefined => {
+  const guides = getGuides();
+  return guides.find((guide) => guide.id === id);
+};
+
+// 更新攻略
+export const updateGuide = (id: string, updates: Partial<Guide>): Guide | null => {
+  const guides = getGuides();
+  const index = guides.findIndex((guide) => guide.id === id);
+  
+  if (index === -1) {
+    return null;
+  }
+  
+  const updatedGuide = {
+    ...guides[index],
+    ...updates,
+  };
+  
+  guides[index] = updatedGuide;
+  saveGuides(guides);
+  
+  return updatedGuide;
+};
+
+// 删除攻略
+export const deleteGuide = (id: string): boolean => {
+  const guides = getGuides();
+  const initialLength = guides.length;
+  const filteredGuides = guides.filter((guide) => guide.id !== id);
+  
+  if (filteredGuides.length === initialLength) {
+    return false;
+  }
+  
+  saveGuides(filteredGuides);
+  return true;
 };
