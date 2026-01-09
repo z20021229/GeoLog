@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Menu, X, Download, Upload, List, BarChart3, MapPin, Route, Plus, Save } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { Footprint, Guide } from '../../types';
 import { calculateTotalDistance, formatDistance } from '../../utils/distance';
 import { formatOSRMDistance, formatTime, getOSRMTripRoute } from '../../utils/osrm';
@@ -156,21 +157,102 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // 海报风格状态
   const [posterStyle, setPosterStyle] = useState<'film' | 'minimal'>('film');
+  // 海报生成进度状态
+  const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
   
-  // 模拟海报生成功能 - 支持不同风格
-  const handleGeneratePoster = (style: 'film' | 'minimal') => {
+  // 真正的海报生成功能 - 支持不同风格
+  const handleGeneratePoster = async (style: 'film' | 'minimal') => {
     setPosterStyle(style);
-    console.log(`生成${style === 'film' ? '电影底片' : '极简杂志'}风格海报`);
-    // 这里可以添加实际的海报生成逻辑，使用html2canvas等库
+    setIsGeneratingPoster(true);
     
-    // 模拟海报生成过程
-    const generateBtn = document.querySelector(`[data-style="${style}"]`);
-    if (generateBtn) {
-      generateBtn.classList.add('animate-pulse');
-      setTimeout(() => {
-        generateBtn.classList.remove('animate-pulse');
-        alert(`已切换为${style === 'film' ? '电影底片' : '极简杂志'}风格海报`);
-      }, 500);
+    console.log(`生成${style === 'film' ? '电影底片' : '极简杂志'}风格海报`);
+    
+    try {
+      // 1. 找到地图容器，这是海报的主要内容
+      const mapContainer = document.querySelector('.w-full.h-full.rounded-md.overflow-hidden.relative.z-10');
+      if (!mapContainer) {
+        throw new Error('地图容器未找到');
+      }
+      
+      // 2. 找到足迹列表，作为海报的辅助内容
+      const footprintList = document.querySelector('.flex-1.overflow-y-auto.scrollbar-width-thin.p-4');
+      
+      // 3. 创建临时的海报容器
+      const posterContainer = document.createElement('div');
+      posterContainer.className = `fixed top-[-10000px] left-[-10000px] bg-white p-8 rounded-lg shadow-2xl ${style === 'film' ? 'film-poster-style' : 'minimal-poster-style'}`;
+      posterContainer.style.width = '800px';
+      posterContainer.style.height = '600px';
+      posterContainer.style.display = 'flex';
+      posterContainer.style.flexDirection = 'column';
+      
+      // 4. 添加海报标题
+      const title = document.createElement('h1');
+      title.className = 'text-3xl font-bold mb-6 text-center';
+      title.innerText = 'GeoLog 旅程海报';
+      posterContainer.appendChild(title);
+      
+      // 5. 添加地图截图区域
+      const mapSection = document.createElement('div');
+      mapSection.className = 'flex-1 mb-6 rounded-lg overflow-hidden';
+      mapSection.appendChild(mapContainer.cloneNode(true) as Node);
+      posterContainer.appendChild(mapSection);
+      
+      // 6. 添加足迹信息
+      if (footprintList) {
+        const footprintsSection = document.createElement('div');
+        footprintsSection.className = 'h-24 overflow-y-auto rounded-lg p-4 bg-gray-50';
+        footprintsSection.innerHTML = '<h3 className="font-bold mb-2">旅程足迹</h3>' + (footprintList.innerHTML || '暂无足迹');
+        posterContainer.appendChild(footprintsSection);
+      }
+      
+      // 7. 添加风格标识
+      const styleBadge = document.createElement('div');
+      styleBadge.className = 'absolute top-4 right-4 px-3 py-1 rounded-full font-semibold';
+      if (style === 'film') {
+        styleBadge.className += ' bg-black text-white';
+        styleBadge.innerText = '电影底片风格';
+      } else {
+        styleBadge.className += ' bg-gray-200 text-gray-800';
+        styleBadge.innerText = '极简杂志风格';
+      }
+      posterContainer.appendChild(styleBadge);
+      
+      // 8. 添加到文档中
+      document.body.appendChild(posterContainer);
+      
+      // 9. 使用html2canvas生成海报
+      const canvas = await html2canvas(posterContainer, {
+        scale: 2, // 提高分辨率
+        useCORS: true, // 允许跨域图片
+        allowTaint: true,
+        logging: false
+      });
+      
+      // 10. 将canvas转换为blob并下载
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'GeoLog_Trip_Poster.png';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      });
+      
+      // 11. 清理临时容器
+      document.body.removeChild(posterContainer);
+      
+      // 12. 显示成功提示（可选）
+      console.log('海报生成成功！');
+      
+    } catch (error) {
+      console.error('海报生成失败:', error);
+    } finally {
+      // 13. 结束生成状态
+      setIsGeneratingPoster(false);
     }
   };
 
@@ -205,7 +287,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className="fixed left-0 top-0 w-[320px] h-[100vh] flex flex-col bg-[#0f172a] z-[50] border-r border-slate-700 pointer-events-auto">
+    <div className="fixed left-0 top-0 w-[320px] h-[100vh] max-h-[100vh] flex flex-col bg-[#0f172a] z-[50] border-r border-slate-700 pointer-events-auto overflow-hidden">
       {/* 路线统计面板样式 */}
       <style jsx>{`
         /* 给统计面板增加明显的视觉区分 */
@@ -462,7 +544,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           <button
             data-style="film"
             onClick={() => handleGeneratePoster('film')}
-            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-all text-sm border ${posterStyle === 'film' ? 'border-primary bg-primary/20 text-primary shadow-lg shadow-primary/30' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white hover:shadow-md'}`}
+            disabled={isGeneratingPoster}
+            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-all text-sm border ${posterStyle === 'film' ? 'border-primary bg-primary/20 text-primary shadow-lg shadow-primary/30' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white hover:shadow-md'} ${isGeneratingPoster ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <span className="text-lg">🎬</span>
             <span>电影底片</span>
@@ -470,12 +553,27 @@ const Sidebar: React.FC<SidebarProps> = ({
           <button
             data-style="minimal"
             onClick={() => handleGeneratePoster('minimal')}
-            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-all text-sm border ${posterStyle === 'minimal' ? 'border-primary bg-primary/20 text-primary shadow-lg shadow-primary/30' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white hover:shadow-md'}`}
+            disabled={isGeneratingPoster}
+            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-all text-sm border ${posterStyle === 'minimal' ? 'border-primary bg-primary/20 text-primary shadow-lg shadow-primary/30' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white hover:shadow-md'} ${isGeneratingPoster ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <span className="text-lg">📸</span>
             <span>极简杂志</span>
           </button>
         </div>
+        
+        {/* 海报生成进度显示 */}
+        {isGeneratingPoster && (
+          <div className="mt-2 bg-gray-800/50 rounded-md p-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <p className="text-xs text-gray-300">海报合成中...</p>
+            </div>
+            <div className="mt-1 h-1 bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: '70%' }}></div>
+            </div>
+          </div>
+        )}
+        
         <p className="text-xs text-gray-500 mt-2">点击选择海报风格，一键生成精美足迹海报</p>
       </div>
       
