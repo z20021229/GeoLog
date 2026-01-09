@@ -5,7 +5,7 @@ import { Menu, X, Download, Upload, List, BarChart3, MapPin, Route, Plus, Save }
 import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint } from '../../types';
 import { calculateTotalDistance, formatDistance } from '../../utils/distance';
-import { formatOSRMDistance, formatTime } from '../../utils/osrm';
+import { formatOSRMDistance, formatTime, optimizeRouteOrder } from '../../utils/osrm';
 import StatisticsPanel from './StatisticsPanel';
 import FootprintList from './FootprintList';
 
@@ -150,13 +150,36 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* 路线规划按钮 */}
           <div className="p-4 border-b border-border">
-            <button
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${isRoutePlanning ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'} w-full justify-center`}
-              onClick={handleRoutePlanToggle}
-            >
-              <Route size={16} />
-              {isRoutePlanning ? '退出路线规划' : '规划路线'}
-            </button>
+            {isRoutePlanning ? (
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-primary text-primary-foreground hover:bg-primary/90 justify-center"
+                  onClick={handleRoutePlanToggle}
+                >
+                  <Route size={16} />
+                  退出路线规划
+                </button>
+                <button
+                  className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/90 justify-center"
+                  onClick={() => {
+                    // 模拟保存攻略功能
+                    const distance = walkingRoute ? walkingRoute.distance / 1000 : calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)) / 1000;
+                    alert(`已将这趟 ${distance.toFixed(1)}km 的史诗旅程存入你的攻略库！`);
+                  }}
+                >
+                  <Save size={16} />
+                  保存攻略
+                </button>
+              </div>
+            ) : (
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/90 w-full justify-center`}
+                onClick={handleRoutePlanToggle}
+              >
+                <Route size={16} />
+                规划路线
+              </button>
+            )}
           </div>
 
           {/* 路线统计面板 */}
@@ -170,6 +193,19 @@ const Sidebar: React.FC<SidebarProps> = ({
               ) : selectedFootprints.length > 1 ? (
                 <p className="text-center mt-2">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</p>
               ) : null}
+              {selectedFootprints.length > 2 && (
+                <div className="mt-3 flex justify-center">
+                  <button
+                    className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                    onClick={() => {
+                      const optimizedFootprints = optimizeRouteOrder(selectedFootprints);
+                      onRoutePlanChange?.(optimizedFootprints);
+                    }}
+                  >
+                    ✨ 优化顺序
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

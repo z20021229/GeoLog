@@ -115,3 +115,40 @@ export const calculateStraightDistance = (start: [number, number], end: [number,
   
   return R * c;
 };
+
+/**
+ * 使用贪心算法（最近邻算法）优化路线顺序
+ * @param footprints 足迹数组
+ * @returns 优化后的足迹数组
+ */
+export const optimizeRouteOrder = <T extends { coordinates: [number, number] }>(footprints: T[]): T[] => {
+  if (footprints.length <= 2) {
+    return footprints;
+  }
+  
+  // 复制足迹数组，避免修改原数组
+  const unvisited = [...footprints];
+  const optimized: T[] = [];
+  
+  // 从第一个足迹开始
+  optimized.push(unvisited.shift()!);
+  
+  // 贪心选择最近的下一个足迹
+  while (unvisited.length > 0) {
+    const current = optimized[optimized.length - 1];
+    let nearestIndex = 0;
+    let nearestDistance = calculateStraightDistance(current.coordinates, unvisited[0].coordinates);
+    
+    for (let i = 1; i < unvisited.length; i++) {
+      const distance = calculateStraightDistance(current.coordinates, unvisited[i].coordinates);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = i;
+      }
+    }
+    
+    optimized.push(unvisited.splice(nearestIndex, 1)[0]);
+  }
+  
+  return optimized;
+};

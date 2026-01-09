@@ -356,6 +356,7 @@ const Map: React.FC<MapProps> = ({
         className="w-full h-full"
         style={{ height: '100%', width: '100%', pointerEvents: 'auto', zIndex: 1 }}
         ref={mapRef}
+        doubleClickZoom={true}
         whenReady={() => {
           setIsMapReady(true);
         }}
