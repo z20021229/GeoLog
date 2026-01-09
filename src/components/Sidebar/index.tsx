@@ -159,6 +159,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [posterStyle, setPosterStyle] = useState<'film' | 'minimal'>('film');
   // 海报生成进度状态
   const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
+  // 路线优化加载状态
+  const [isOptimizingRoute, setIsOptimizingRoute] = useState(false);
   
   // 真正的海报生成功能 - 支持不同风格
   const handleGeneratePoster = async (style: 'film' | 'minimal') => {
@@ -436,9 +438,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="mt-3 flex justify-center gap-2">
               {isRoutePlanning && selectedFootprints.length > 2 && (
                 <button
-                  className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm transition-colors ${isOptimizingRoute ? 'bg-primary/50 text-primary-foreground cursor-not-allowed opacity-70' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
                   onClick={async () => {
                     try {
+                      setIsOptimizingRoute(true);
                       // 调用OSRM的trip接口获取优化路径
                       const coordinates = selectedFootprints.map(fp => fp.coordinates);
                       const tripResult = await getOSRMTripRoute(coordinates);
@@ -456,13 +459,23 @@ const Sidebar: React.FC<SidebarProps> = ({
                             duration: tripResult.duration
                           });
                         }
+                      } else {
+                        // 优化失败，给出提示
+                        console.warn('路线优化失败，可能包含无法陆路到达的点位');
                       }
                     } catch (error) {
                       console.error('Error optimizing route:', error);
+                      // 捕获AbortError，给出友好提示
+                      if (error.name === 'AbortError') {
+                        console.warn('路线优化超时，可能包含无法陆路到达的点位');
+                      }
+                    } finally {
+                      setIsOptimizingRoute(false);
                     }
                   }}
+                  disabled={isOptimizingRoute}
                 >
-                  ✨ 优化顺序
+                  {isOptimizingRoute ? '计算中...' : '✨ 优化顺序'}
                 </button>
               )}
             </div>

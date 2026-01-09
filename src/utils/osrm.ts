@@ -88,9 +88,9 @@ export const getOSRMTripRoute = async (coordinates: [number, number][]): Promise
     // 使用OSRM trip接口，专门用于解决旅行商问题
     const url = `https://router.project-osrm.org/trip/v1/walking/${coordinatesStr}?overview=full&geometries=geojson&source=first&destination=last`;
     
-    // 设置超时时间为8秒，trip接口可能需要更长时间
+    // 设置超时时间为10秒，防止大规模计算时被误杀
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     
     const response = await fetch(url, {
       method: 'GET',
