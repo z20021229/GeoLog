@@ -10,6 +10,36 @@ import { WeatherData } from '../../utils/weather';
 import StatisticsPanel from './StatisticsPanel';
 import FootprintList from './FootprintList';
 
+// 错误边界组件 - 防止子组件报错导致整个侧边栏崩溃
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 bg-background rounded-md">
+          <p className="text-sm text-muted-foreground">加载组件时出错</p>
+          <button 
+            onClick={this.handleRetry} 
+            className="mt-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded"
+          >
+            重试
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
@@ -335,59 +365,65 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="overflow-y-auto p-4 flex-1">
             {/* 足迹列表 */}
             <Tabs.Content value="list" className="space-y-2">
-              <FootprintList 
-                footprints={footprints} 
-                selectedFootprintId={selectedFootprintId} 
-                onSelectFootprint={onSelectFootprint} 
-                isRoutePlanning={isRoutePlanning}
-                selectedFootprints={selectedFootprints}
-                onRoutePlanChange={onRoutePlanChange}
-              />
+              <ErrorBoundary>
+                <FootprintList 
+                  footprints={footprints} 
+                  selectedFootprintId={selectedFootprintId} 
+                  onSelectFootprint={onSelectFootprint} 
+                  isRoutePlanning={isRoutePlanning}
+                  selectedFootprints={selectedFootprints}
+                  onRoutePlanChange={onRoutePlanChange}
+                />
+              </ErrorBoundary>
             </Tabs.Content>
 
             {/* 数据统计 */}
             <Tabs.Content value="statistics" className="space-y-2">
-              <StatisticsPanel footprints={footprints} />
+              <ErrorBoundary>
+                <StatisticsPanel footprints={footprints} />
+              </ErrorBoundary>
             </Tabs.Content>
             
             {/* 我的攻略 */}
             <Tabs.Content value="guides" className="space-y-4">
-              <div>
-                <h2 className="text-lg font-bold mb-4">我的攻略</h2>
-                <p className="text-sm text-muted-foreground mb-4">已保存的史诗旅程</p>
-                
-                {/* 真实攻略列表 */}
-                {guides.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>暂无保存的攻略</p>
-                    <p className="text-xs mt-2">在路线规划模式下保存攻略后，将显示在这里</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {guides.map((guide) => (
-                      <div 
-                        key={guide.id}
-                        className="p-4 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border mb-4"
-                        onClick={() => {
-                          // 加载攻略路线
-                          onLoadGuideRoute?.(guide);
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium">{guide.name}</h3>
-                          <span className="text-sm text-muted-foreground">{(guide.distance / 1000).toFixed(1)}公里</span>
+              <ErrorBoundary>
+                <div>
+                  <h2 className="text-lg font-bold mb-4">我的攻略</h2>
+                  <p className="text-sm text-muted-foreground mb-4">已保存的史诗旅程</p>
+                  
+                  {/* 真实攻略列表 */}
+                  {guides.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>暂无保存的攻略</p>
+                      <p className="text-xs mt-2">在路线规划模式下保存攻略后，将显示在这里</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {guides.map((guide) => (
+                        <div 
+                          key={guide.id}
+                          className="p-4 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border mb-4"
+                          onClick={() => {
+                            // 加载攻略路线
+                            onLoadGuideRoute?.(guide);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium">{guide.name}</h3>
+                            <span className="text-sm text-muted-foreground">{(guide.distance / 1000).toFixed(1)}公里</span>
+                          </div>
+                          {guide.description && (
+                            <p className="text-xs text-muted-foreground mt-1 truncate">{guide.description}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            包含{guide.footprints.length}个地点，预计耗时{formatTime(guide.duration)}
+                          </p>
                         </div>
-                        {guide.description && (
-                          <p className="text-xs text-muted-foreground mt-1 truncate">{guide.description}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          包含{guide.footprints.length}个地点，预计耗时{formatTime(guide.duration)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </ErrorBoundary>
             </Tabs.Content>
           </div>
         </Tabs.Root>

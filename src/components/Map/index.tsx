@@ -267,15 +267,16 @@ const Map: React.FC<MapProps> = ({
   const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
   
-  // 天气数据相关状态
+  // 天气数据相关状态 - 使用静态模拟数据
   const [keyPointsWeather, setKeyPointsWeather] = useState<{
     start?: WeatherData | null;
     mid?: WeatherData | null;
     end?: WeatherData | null;
-  }>({});
-  
-  // 天气Marker引用，用于清除现有Marker
-  const weatherMarkersRef = useRef<any[]>([]);
+  }>({
+    // 使用静态模拟数据，不调用真实API
+    start: { temperature: 22, weather: 'Clear', icon: '01d', description: '晴', humidity: 50, windSpeed: 3 },
+    end: { temperature: 22, weather: 'Clear', icon: '01d', description: '晴', humidity: 50, windSpeed: 3 }
+  });
   
   // 当天气数据变化时，调用回调函数传递给父组件
   useEffect(() => {
@@ -439,128 +440,11 @@ const Map: React.FC<MapProps> = ({
     }
   }, [selectedFootprints, walkingRoute, isClient]);
   
-  // 当路线变化时，获取三个关键点的天气数据
-  useEffect(() => {
-    const fetchWeatherData = async () => {
-      if (!walkingRoute?.path || walkingRoute.path.length < 2) {
-        return;
-      }
-      
-      try {
-        // 提取起点、中点、终点
-        const [start, mid, end] = extractKeyPoints(walkingRoute.path);
-        
-        console.log('Fetching weather data for coordinates:', { start, mid, end });
-        
-        // 并行获取三个点的天气数据
-        const [startWeather, midWeather, endWeather] = await Promise.all([
-          getWeatherData(start),
-          getWeatherData(mid),
-          getWeatherData(end)
-        ]);
-        
-        console.log('Weather data fetched successfully:', { startWeather, midWeather, endWeather });
-        
-        // 更新天气数据状态
-        setKeyPointsWeather({
-          start: startWeather,
-          mid: midWeather,
-          end: endWeather
-        });
-      } catch (error) {
-        console.error('Failed to fetch weather data:', error);
-        // 在控制台打印明确的错误日志
-        if (error instanceof Error) {
-          console.error('Weather API error message:', error.message);
-        }
-      }
-    };
-    
-    fetchWeatherData();
-  }, [walkingRoute]);
+  // 移除天气数据获取的API请求，使用静态模拟数据
   
-  // 当天气数据和地图准备就绪时，添加天气Marker
-  useEffect(() => {
-    if (!L || !mapRef.current || !walkingRoute?.path || walkingRoute.path.length < 2) {
-      return;
-    }
-    
-    console.log('Adding weather markers...');
-    
-    // 提取起点和终点坐标
-    const [start, _, end] = extractKeyPoints(walkingRoute.path);
-    
-    // 清除现有的天气Marker
-    if (weatherMarkersRef.current) {
-      weatherMarkersRef.current.forEach(marker => marker.remove());
-      weatherMarkersRef.current = [];
-    }
-    
-    // 创建天气图标映射
-    const weatherIcons: Record<string, string> = {
-      Clear: '☀️',
-      Clouds: '☁️',
-      Rain: '🌧️',
-      Drizzle: '🌦️',
-      Thunderstorm: '⛈️',
-      Snow: '❄️',
-      Mist: '🌫️',
-      Smoke: '🌫️',
-      Haze: '🌫️',
-      Dust: '🌫️',
-      Fog: '🌫️',
-      Sand: '🌫️',
-      Ash: '🌫️',
-      Squall: '💨',
-      Tornado: '🌪️'
-    };
-    
-    // 辅助函数：创建天气Marker
-    const createWeatherMarker = (coordinates: [number, number], weatherData: WeatherData | null | undefined) => {
-      let markerContent = '';
-      
-      if (weatherData) {
-        const icon = weatherIcons[weatherData.weather] || '❓';
-        const temp = weatherData.temperature;
-        markerContent = `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.5); padding: 4px 8px; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
-                        <div style="font-size: 24px;">${icon}</div>
-                        <div style="font-size: 14px; font-weight: bold; color: white;">${temp}°C</div>
-                      </div>`;
-      } else {
-        // 天气获取失败时显示的内容
-        markerContent = `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.5); padding: 4px 8px; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
-                        <div style="font-size: 14px; font-weight: bold; color: white; text-align: center;">天气获取失败</div>
-                      </div>`;
-      }
-      
-      const markerIcon = L.divIcon({
-        className: 'weather-marker',
-        html: markerContent,
-        iconSize: [60, 60],
-        iconAnchor: [30, 30]
-      });
-      
-      const marker = L.marker(coordinates, { icon: markerIcon });
-      marker.addTo(mapRef.current);
-      weatherMarkersRef.current.push(marker);
-    };
-    
-    // 添加起点天气Marker
-    createWeatherMarker(start, keyPointsWeather.start);
-    
-    // 添加终点天气Marker
-    createWeatherMarker(end, keyPointsWeather.end);
-    
-    console.log('Weather markers added successfully');
-  }, [L, mapRef, walkingRoute, keyPointsWeather]);
+  // 移除天气Marker渲染，避免页面崩溃
   
-  // 当选中足迹变化时，也检查是否需要获取天气数据（用于从攻略加载路线时）
-  useEffect(() => {
-    if (selectedFootprints?.length > 1 && !walkingRoute?.path) {
-      // 当从攻略加载路线时，可能先有选中足迹，后有walkingRoute
-      console.log('Selected footprints changed, checking if weather data is needed');
-    }
-  }, [selectedFootprints, walkingRoute]);
+  // 移除天气相关的检查逻辑
 
   // 路线预览功能
   useEffect(() => {
@@ -587,31 +471,22 @@ const Map: React.FC<MapProps> = ({
         previewIntervalRef.current = null;
       }
       
+      // 立即执行地图飞行到第一个点，不依赖任何其他异步操作
+      const firstFootprint = selectedFootprints[0];
+      console.log(`Immediately flying to first footprint: ${firstFootprint.name}`);
+      
+      // 地图飞行到第一个地点
+      if (mapRef.current) {
+        mapRef.current.flyTo(firstFootprint.coordinates, 15, {
+          duration: 2,
+          easeLinearity: 0.25,
+          animate: true
+        });
+      }
+      
       // 开始路线预览
       const startRoutePreview = async () => {
         try {
-          // 确保地图先移动到第一个足迹
-          const firstFootprint = selectedFootprints[0];
-          console.log(`First, flying to first footprint: ${firstFootprint.name}`);
-          
-          // 地图飞行到第一个地点
-          await new Promise<void>((resolve) => {
-            if (mapRef.current) {
-              mapRef.current.flyTo(firstFootprint.coordinates, 15, {
-                duration: 2,
-                easeLinearity: 0.25,
-                animate: true,
-                callback: () => {
-                  console.log(`Arrived at first footprint: ${firstFootprint.name}`);
-                  resolve();
-                }
-              });
-            } else {
-              console.error('Map ref is null for first flyTo');
-              resolve();
-            }
-          });
-          
           // 等待1秒，然后继续下一个地点
           await new Promise(resolve => setTimeout(resolve, 1000));
           
@@ -695,11 +570,6 @@ const Map: React.FC<MapProps> = ({
       }
       if (speechSynthesisRef.current) {
         speechSynthesisRef.current.cancel();
-      }
-      // 清除天气Marker
-      if (weatherMarkersRef.current) {
-        weatherMarkersRef.current.forEach(marker => marker.remove());
-        weatherMarkersRef.current = [];
       }
     };
   }, [selectedFootprints, isClient]);
