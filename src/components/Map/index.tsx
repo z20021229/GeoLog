@@ -500,7 +500,7 @@ const Map: React.FC<MapProps> = ({
                 mapRef.current.on('moveend', onMoveEnd);
                 
                 mapRef.current.flyTo(footprint.coordinates, 15, {
-                  duration: 2,
+                  duration: 3,
                   easeLinearity: 0.25,
                   animate: true
                 });

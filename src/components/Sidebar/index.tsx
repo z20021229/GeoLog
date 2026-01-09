@@ -188,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className="bg-card border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-64 flex flex-col">
+    <div className="bg-[#0f172a] border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-80 flex flex-col">
       {/* 添加统计面板样式 */}
       <style jsx>{`
         /* 给统计面板增加明显的视觉区分 */
