@@ -24,6 +24,7 @@ const Home: React.FC = () => {
   const [mapZoom, setMapZoom] = useState<number>(10);
   
   // 路线规划相关状态
+  const [isRoutePlanning, setIsRoutePlanning] = useState(false);
   const [selectedFootprints, setSelectedFootprints] = useState<Footprint[]>([]);
   const [walkingRoute, setWalkingRoute] = useState<{
     path: [number, number][];
@@ -51,6 +52,18 @@ const Home: React.FC = () => {
     setSelectedFootprintId(footprint.id);
     setMapCenter(footprint.coordinates);
     setMapZoom(15);
+  };
+
+  // 处理路线规划模式切换
+  const handleRoutePlanToggle = () => {
+    const newRoutePlanningState = !isRoutePlanning;
+    setIsRoutePlanning(newRoutePlanningState);
+    
+    if (!newRoutePlanningState) {
+      // 退出路线规划模式时，清空所有选择和路线
+      setSelectedFootprints([]);
+      setWalkingRoute(null);
+    }
   };
 
   // 处理路线规划选择变化
@@ -81,6 +94,8 @@ const Home: React.FC = () => {
         selectedFootprints={selectedFootprints}
         onRoutePlanChange={handleRoutePlanChange}
         walkingRoute={walkingRoute}
+        isRoutePlanning={isRoutePlanning}
+        onRoutePlanToggle={handleRoutePlanToggle}
       />
       
       {/* Main Content - Map */}
@@ -96,6 +111,7 @@ const Home: React.FC = () => {
               selectedFootprints={selectedFootprints}
               onRoutePlanChange={handleRoutePlanChange}
               onWalkingRouteChange={handleWalkingRouteChange}
+              isRoutePlanning={isRoutePlanning}
             />
           </Suspense>
         </div>

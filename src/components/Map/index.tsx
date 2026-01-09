@@ -20,6 +20,7 @@ interface MapProps {
     distance: number;
     duration: number;
   } | null) => void;
+  isRoutePlanning?: boolean;
 }
 
 interface MapViewProps {
@@ -126,7 +127,8 @@ const Map: React.FC<MapProps> = ({
   selectedFootprintId,
   selectedFootprints = [],
   onRoutePlanChange,
-  onWalkingRouteChange
+  onWalkingRouteChange,
+  isRoutePlanning = false
 }) => {
   if (typeof window === 'undefined') {
     return (
@@ -427,8 +429,9 @@ const Map: React.FC<MapProps> = ({
               click: () => {
                 console.log('Marker clicked:', footprint.name);
                 setTargetFootprint(footprint);
-                // 在路线规划模式下，点击 Marker 时处理选中状态
-                if (onRoutePlanChange) {
+                
+                if (isRoutePlanning && onRoutePlanChange) {
+                  // 只有在路线规划模式下，才处理选点逻辑
                   const isSelected = selectedFootprints?.some(fp => fp.id === footprint.id) || false;
                   let newSelectedFootprints: Footprint[];
                   

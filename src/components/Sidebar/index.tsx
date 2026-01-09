@@ -25,6 +25,8 @@ interface SidebarProps {
     duration: number;
   } | null;
   onSaveRoute?: () => void;
+  isRoutePlanning: boolean;
+  onRoutePlanToggle: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -38,10 +40,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   onRoutePlanChange,
   selectedFootprints = [],
   walkingRoute = null,
-  onSaveRoute
+  onSaveRoute,
+  isRoutePlanning,
+  onRoutePlanToggle
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isRoutePlanning, setIsRoutePlanning] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
 
   const handleExportClick = () => {
@@ -62,12 +65,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  // 处理路线规划模式切换，使用外部传入的回调函数
   const handleRoutePlanToggle = () => {
-    setIsRoutePlanning(!isRoutePlanning);
-    if (!isRoutePlanning) {
-      // 进入路线规划模式时，清空之前的选择
-      onRoutePlanChange?.([]);
-    }
+    onRoutePlanToggle();
   };
 
   const handleSaveRoute = () => {
