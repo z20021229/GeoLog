@@ -173,8 +173,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          {/* 足迹列表：使用正确的滚动布局 */}
-          <Tabs.Content value="list" className="flex-1 min-h-0 overflow-y-auto p-4">
+          {/* 足迹列表：使用固定高度和强制滚动 */}
+          <Tabs.Content value="list" className="h-[calc(100vh-280px)] overflow-y-scroll !important p-4">
             <FootprintList 
               footprints={footprints} 
               selectedFootprintId={selectedFootprintId} 
@@ -185,8 +185,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             />
           </Tabs.Content>
 
-          {/* 数据统计：使用正确的滚动布局 */}
-          <Tabs.Content value="statistics" className="flex-1 min-h-0 overflow-y-auto p-4">
+          {/* 数据统计：使用固定高度和强制滚动 */}
+          <Tabs.Content value="statistics" className="h-[calc(100vh-280px)] overflow-y-scroll !important p-4">
             <StatisticsPanel footprints={footprints} />
           </Tabs.Content>
         </Tabs.Root>

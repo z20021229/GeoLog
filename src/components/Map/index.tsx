@@ -248,7 +248,7 @@ const Map: React.FC<MapProps> = ({
     }
   }, [selectedFootprintId, footprints, isClient, L, zoom]);
 
-  // 当选中足迹变化时，计算OSRM步行路线
+  // 当选中足迹变化时，计算OSRM步行路线 - 添加防抖机制
   useEffect(() => {
     const calculateRoute = async () => {
       if (selectedFootprints.length < 2) {
@@ -275,7 +275,15 @@ const Map: React.FC<MapProps> = ({
       }
     };
     
-    calculateRoute();
+    // 添加防抖机制，500ms后再发起请求
+    const debounceTimeout = setTimeout(() => {
+      calculateRoute();
+    }, 500);
+    
+    // 清理函数
+    return () => {
+      clearTimeout(debounceTimeout);
+    };
   }, [selectedFootprints, onWalkingRouteChange]);
 
   // 当选中足迹或路线变化时，自动缩放地图以显示所有选中的足迹或完整路线
