@@ -111,6 +111,217 @@ const Sidebar: React.FC<SidebarProps> = ({
     setGuideDescription('');
   };
 
+  // 生成分享海报
+  const handleGeneratePoster = async () => {
+    try {
+      // 创建海报容器
+      const posterContainer = document.createElement('div');
+      posterContainer.style.cssText = `
+        position: fixed;
+        top: -10000px;
+        left: -10000px;
+        width: 800px;
+        height: 1200px;
+        background: #1e293b;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        z-index: 9999;
+      `;
+      
+      // 获取地图元素
+      const mapElement = document.querySelector('.leaflet-container');
+      if (!mapElement) {
+        console.error('无法找到地图元素');
+        return;
+      }
+      
+      // 克隆地图元素
+      const mapClone = mapElement.cloneNode(true) as HTMLElement;
+      mapClone.style.cssText = `
+        width: 100%;
+        height: 600px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      `;
+      
+      // 创建攻略信息容器
+      const guideInfoContainer = document.createElement('div');
+      guideInfoContainer.style.cssText = `
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      `;
+      
+      // 添加攻略标题
+      const guideTitle = document.createElement('h2');
+      guideTitle.textContent = '我的足迹攻略';
+      guideTitle.style.cssText = `
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0;
+        text-align: center;
+      `;
+      guideInfoContainer.appendChild(guideTitle);
+      
+      // 添加统计信息
+      const statsContainer = document.createElement('div');
+      statsContainer.style.cssText = `
+        display: flex;
+        justify-content: space-around;
+        padding: 16px;
+        background: #334155;
+        border-radius: 8px;
+      `;
+      
+      const distanceStat = document.createElement('div');
+      distanceStat.innerHTML = `
+        <div style="font-size: 14px; color: #94a3b8;">总距离</div>
+        <div style="font-size: 20px; font-weight: bold;">${formatOSRMDistance(walkingRoute?.distance || 0)}</div>
+      `;
+      statsContainer.appendChild(distanceStat);
+      
+      const durationStat = document.createElement('div');
+      durationStat.innerHTML = `
+        <div style="font-size: 14px; color: #94a3b8;">预计耗时</div>
+        <div style="font-size: 20px; font-weight: bold;">${formatTime(walkingRoute?.duration || 0)}</div>
+      `;
+      statsContainer.appendChild(durationStat);
+      
+      const locationsStat = document.createElement('div');
+      locationsStat.innerHTML = `
+        <div style="font-size: 14px; color: #94a3b8;">地点数量</div>
+        <div style="font-size: 20px; font-weight: bold;">${selectedFootprints?.length || 0}个</div>
+      `;
+      statsContainer.appendChild(locationsStat);
+      
+      guideInfoContainer.appendChild(statsContainer);
+      
+      // 添加足迹列表
+      const footprintsTitle = document.createElement('h3');
+      footprintsTitle.textContent = '足迹清单';
+      footprintsTitle.style.cssText = `
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0;
+      `;
+      guideInfoContainer.appendChild(footprintsTitle);
+      
+      const footprintsList = document.createElement('div');
+      footprintsList.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 300px;
+        overflow-y: auto;
+      `;
+      
+      selectedFootprints?.forEach((footprint, index) => {
+        const footprintItem = document.createElement('div');
+        footprintItem.style.cssText = `
+          display: flex;
+          gap: 12px;
+          padding: 12px;
+          background: #334155;
+          border-radius: 6px;
+        `;
+        
+        const indexBadge = document.createElement('div');
+        indexBadge.textContent = (index + 1).toString();
+        indexBadge.style.cssText = `
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: #60a5fa;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: bold;
+          flex-shrink: 0;
+        `;
+        
+        const footprintInfo = document.createElement('div');
+        footprintInfo.style.cssText = `
+          flex: 1;
+          overflow: hidden;
+        `;
+        
+        const footprintName = document.createElement('div');
+        footprintName.textContent = footprint.name;
+        footprintName.style.cssText = `
+          font-weight: bold;
+          margin-bottom: 4px;
+        `;
+        
+        const footprintLocation = document.createElement('div');
+        footprintLocation.textContent = footprint.location;
+        footprintLocation.style.cssText = `
+          font-size: 12px;
+          color: #94a3b8;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        `;
+        
+        footprintInfo.appendChild(footprintName);
+        footprintInfo.appendChild(footprintLocation);
+        
+        footprintItem.appendChild(indexBadge);
+        footprintItem.appendChild(footprintInfo);
+        
+        footprintsList.appendChild(footprintItem);
+      });
+      
+      guideInfoContainer.appendChild(footprintsList);
+      
+      // 添加水印
+      const watermark = document.createElement('div');
+      watermark.textContent = 'GeoLog 记录我的足迹';
+      watermark.style.cssText = `
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        font-size: 14px;
+        color: #94a3b8;
+      `;
+      
+      // 构建海报
+      posterContainer.appendChild(mapClone);
+      posterContainer.appendChild(guideInfoContainer);
+      posterContainer.appendChild(watermark);
+      
+      // 添加到文档
+      document.body.appendChild(posterContainer);
+      
+      // 使用html2canvas截图（使用类型断言避免编译错误）
+      const html2canvas = (await import('html2canvas' as any)).default;
+      const canvas = await html2canvas(posterContainer, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      
+      // 移除海报容器
+      document.body.removeChild(posterContainer);
+      
+      // 下载图片
+      const link = document.createElement('a');
+      const date = new Date().toISOString().split('T')[0];
+      link.download = `足迹海报_${date}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg');
+      link.click();
+      
+      console.log('海报生成成功！');
+    } catch (error) {
+      console.error('生成海报失败:', error);
+      alert('生成海报失败，请重试');
+    }
+  };
+
   if (isCollapsed) {
     return (
       <div className={`bg-card border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-16`}>
@@ -233,8 +444,8 @@ const Sidebar: React.FC<SidebarProps> = ({
               ) : selectedFootprints.length > 1 ? (
                 <p className="text-center mt-2">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</p>
               ) : null}
-              {selectedFootprints.length > 2 && (
-                <div className="mt-3 flex justify-center">
+              <div className="mt-3 flex justify-center gap-2">
+                {selectedFootprints.length > 2 && (
                   <button
                     className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                     onClick={async () => {
@@ -264,8 +475,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                   >
                     ✨ 优化顺序
                   </button>
-                </div>
-              )}
+                )}
+                <button
+                  className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors"
+                  onClick={handleGeneratePoster}
+                >
+                  📸 生成海报
+                </button>
+              </div>
             </div>
           )}
 
