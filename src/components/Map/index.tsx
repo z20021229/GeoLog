@@ -22,6 +22,7 @@ interface MapProps {
     duration: number;
   } | null) => void;
   isRoutePlanning?: boolean;
+  isDetailMode?: boolean; // 新增详情模式属性
   onWeatherDataChange?: (weatherData: {
     start?: WeatherData | null;
     mid?: WeatherData | null;
@@ -213,6 +214,7 @@ const Map: React.FC<MapProps> = ({
   onRoutePlanChange,
   onWalkingRouteChange,
   isRoutePlanning = false,
+  isDetailMode = false, // 新增详情模式属性
   onWeatherDataChange
 }) => {
   if (typeof window === 'undefined') {
@@ -271,6 +273,9 @@ const Map: React.FC<MapProps> = ({
     mid?: WeatherData | null;
     end?: WeatherData | null;
   }>({});
+  
+  // 天气Marker引用，用于清除现有Marker
+  const weatherMarkersRef = useRef<any[]>([]);
   
   // 当天气数据变化时，调用回调函数传递给父组件
   useEffect(() => {
@@ -445,12 +450,16 @@ const Map: React.FC<MapProps> = ({
         // 提取起点、中点、终点
         const [start, mid, end] = extractKeyPoints(walkingRoute.path);
         
+        console.log('Fetching weather data for coordinates:', { start, mid, end });
+        
         // 并行获取三个点的天气数据
         const [startWeather, midWeather, endWeather] = await Promise.all([
           getWeatherData(start),
           getWeatherData(mid),
           getWeatherData(end)
         ]);
+        
+        console.log('Weather data fetched successfully:', { startWeather, midWeather, endWeather });
         
         // 更新天气数据状态
         setKeyPointsWeather({
@@ -460,11 +469,103 @@ const Map: React.FC<MapProps> = ({
         });
       } catch (error) {
         console.error('Failed to fetch weather data:', error);
+        // 在控制台打印明确的错误日志
+        if (error instanceof Error) {
+          console.error('Weather API error message:', error.message);
+        }
       }
     };
     
     fetchWeatherData();
   }, [walkingRoute]);
+  
+  // 当天气数据和地图准备就绪时，添加天气Marker
+  useEffect(() => {
+    if (!L || !mapRef.current || !walkingRoute?.path || walkingRoute.path.length < 2) {
+      return;
+    }
+    
+    console.log('Adding weather markers...');
+    
+    // 提取起点和终点坐标
+    const [start, _, end] = extractKeyPoints(walkingRoute.path);
+    
+    // 清除现有的天气Marker
+    if (weatherMarkersRef.current) {
+      weatherMarkersRef.current.forEach(marker => marker.remove());
+      weatherMarkersRef.current = [];
+    }
+    
+    // 创建天气图标映射
+    const weatherIcons: Record<string, string> = {
+      Clear: '☀️',
+      Clouds: '☁️',
+      Rain: '🌧️',
+      Drizzle: '🌦️',
+      Thunderstorm: '⛈️',
+      Snow: '❄️',
+      Mist: '🌫️',
+      Smoke: '🌫️',
+      Haze: '🌫️',
+      Dust: '🌫️',
+      Fog: '🌫️',
+      Sand: '🌫️',
+      Ash: '🌫️',
+      Squall: '💨',
+      Tornado: '🌪️'
+    };
+    
+    // 添加起点天气Marker
+    if (keyPointsWeather.start) {
+      const startIcon = weatherIcons[keyPointsWeather.start.weather] || '❓';
+      const startTemp = keyPointsWeather.start.temperature;
+      
+      const startMarkerIcon = L.divIcon({
+        className: 'weather-marker',
+        html: `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.5); padding: 4px 8px; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                <div style="font-size: 24px;">${startIcon}</div>
+                <div style="font-size: 14px; font-weight: bold; color: white;">${startTemp}°C</div>
+              </div>`,
+        iconSize: [60, 60],
+        iconAnchor: [30, 30]
+      });
+      
+      const startMarker = L.marker(start, { icon: startMarkerIcon });
+      startMarker.addTo(mapRef.current);
+      weatherMarkersRef.current.push(startMarker);
+      console.log('Added start weather marker:', start);
+    }
+    
+    // 添加终点天气Marker
+    if (keyPointsWeather.end) {
+      const endIcon = weatherIcons[keyPointsWeather.end.weather] || '❓';
+      const endTemp = keyPointsWeather.end.temperature;
+      
+      const endMarkerIcon = L.divIcon({
+        className: 'weather-marker',
+        html: `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.5); padding: 4px 8px; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                <div style="font-size: 24px;">${endIcon}</div>
+                <div style="font-size: 14px; font-weight: bold; color: white;">${endTemp}°C</div>
+              </div>`,
+        iconSize: [60, 60],
+        iconAnchor: [30, 30]
+      });
+      
+      const endMarker = L.marker(end, { icon: endMarkerIcon });
+      endMarker.addTo(mapRef.current);
+      weatherMarkersRef.current.push(endMarker);
+      console.log('Added end weather marker:', end);
+    }
+    
+  }, [L, mapRef, walkingRoute, keyPointsWeather]);
+  
+  // 当选中足迹变化时，也检查是否需要获取天气数据（用于从攻略加载路线时）
+  useEffect(() => {
+    if (selectedFootprints?.length > 1 && !walkingRoute?.path) {
+      // 当从攻略加载路线时，可能先有选中足迹，后有walkingRoute
+      console.log('Selected footprints changed, checking if weather data is needed');
+    }
+  }, [selectedFootprints, walkingRoute]);
 
   // 路线预览功能
   useEffect(() => {
@@ -472,7 +573,13 @@ const Map: React.FC<MapProps> = ({
     speechSynthesisRef.current = window.speechSynthesis;
     
     const handleStartRoutePreview = async () => {
+      console.log('=== Start Route Preview Triggered ===');
+      console.log('Selected footprints:', selectedFootprints.map(fp => fp.name));
+      console.log('Map ref exists:', !!mapRef.current);
+      
+      // 检查是否有足够的足迹点和地图引用
       if (selectedFootprints.length < 2 || !mapRef.current) {
+        console.error('Cannot start preview: insufficient footprints or map not ready');
         return;
       }
       
@@ -487,57 +594,97 @@ const Map: React.FC<MapProps> = ({
       
       // 开始路线预览
       const startRoutePreview = async () => {
-        for (let i = 0; i < selectedFootprints.length; i++) {
-          const footprint = selectedFootprints[i];
+        try {
+          // 确保地图先移动到第一个足迹
+          const firstFootprint = selectedFootprints[0];
+          console.log(`First, flying to first footprint: ${firstFootprint.name}`);
           
-          // 地图飞行到当前地点
+          // 地图飞行到第一个地点
           await new Promise<void>((resolve) => {
-            mapRef.current?.flyTo(footprint.coordinates, 15, {
-              duration: 2,
-              easeLinearity: 0.25,
-              animate: true,
-              callback: () => {
+            if (mapRef.current) {
+              mapRef.current.flyTo(firstFootprint.coordinates, 15, {
+                duration: 2,
+                easeLinearity: 0.25,
+                animate: true,
+                callback: () => {
+                  console.log(`Arrived at first footprint: ${firstFootprint.name}`);
+                  resolve();
+                }
+              });
+            } else {
+              console.error('Map ref is null for first flyTo');
+              resolve();
+            }
+          });
+          
+          // 等待1秒，然后继续下一个地点
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // 继续遍历其他足迹
+          for (let i = 1; i < selectedFootprints.length; i++) {
+            const footprint = selectedFootprints[i];
+            
+            console.log(`Flying to footprint ${i + 1}: ${footprint.name}`);
+            
+            // 地图飞行到当前地点
+            await new Promise<void>((resolve) => {
+              if (mapRef.current) {
+                mapRef.current.flyTo(footprint.coordinates, 15, {
+                  duration: 2,
+                  easeLinearity: 0.25,
+                  animate: true,
+                  callback: () => {
+                    console.log(`Arrived at ${footprint.name}`);
+                    resolve();
+                  }
+                });
+              } else {
+                console.error('Map ref is null during flyTo');
                 resolve();
               }
             });
-          });
-          
-          // 触发Marker跳动动画
-          const markerElement = document.querySelector(`[data-footprint-id="${footprint.id}"] .marker-container`) as HTMLElement;
-          if (markerElement) {
-            markerElement.classList.remove('animate-bounce');
-            // 触发重排
-            void markerElement.offsetWidth;
-            markerElement.classList.add('animate-bounce');
-          }
-          
-          // 打开详情弹窗
-          setTargetFootprint(footprint);
-          
-          // 触发列表高亮
-          window.dispatchEvent(new CustomEvent('highlightFootprint', {
-            detail: { footprintId: footprint.id }
-          }));
-          
-          // 语音播报
-          if (speechSynthesisRef.current && 'speechSynthesis' in window) {
-            // 清空之前的语音队列
-            speechSynthesisRef.current.cancel();
             
-            const utterance = new SpeechSynthesisUtterance(`正在经过：${footprint.name}`);
-            utterance.lang = 'zh-CN';
-            speechSynthesisRef.current.speak(utterance);
+            // 触发Marker跳动动画
+            const markerElement = document.querySelector(`[data-footprint-id="${footprint.id}"] .marker-container`) as HTMLElement;
+            if (markerElement) {
+              markerElement.classList.remove('animate-bounce');
+              // 触发重排
+              void markerElement.offsetWidth;
+              markerElement.classList.add('animate-bounce');
+            }
+            
+            // 打开详情弹窗
+            setTargetFootprint(footprint);
+            
+            // 触发列表高亮
+            window.dispatchEvent(new CustomEvent('highlightFootprint', {
+              detail: { footprintId: footprint.id }
+            }));
+            
+            // 语音播报
+            if (speechSynthesisRef.current && 'speechSynthesis' in window) {
+              // 清空之前的语音队列
+              speechSynthesisRef.current.cancel();
+              
+              const utterance = new SpeechSynthesisUtterance(`正在经过：${footprint.name}`);
+              utterance.lang = 'zh-CN';
+              speechSynthesisRef.current.speak(utterance);
+            }
+            
+            // 等待2秒，然后继续到下一个地点
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
-          
-          // 等待2秒，然后继续到下一个地点
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (error) {
+          console.error('Error during route preview:', error);
+        } finally {
+          // 预览结束
+          console.log('Route preview completed');
+          setIsPreviewing(false);
+          previewProgressRef.current = 0;
         }
-        
-        // 预览结束
-        setIsPreviewing(false);
-        previewProgressRef.current = 0;
       };
       
+      // 立即启动预览
       startRoutePreview();
     };
     
@@ -553,6 +700,11 @@ const Map: React.FC<MapProps> = ({
       }
       if (speechSynthesisRef.current) {
         speechSynthesisRef.current.cancel();
+      }
+      // 清除天气Marker
+      if (weatherMarkersRef.current) {
+        weatherMarkersRef.current.forEach(marker => marker.remove());
+        weatherMarkersRef.current = [];
       }
     };
   }, [selectedFootprints, isClient]);

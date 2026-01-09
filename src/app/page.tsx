@@ -26,6 +26,7 @@ const Home: React.FC = () => {
   
   // 路线规划相关状态
   const [isRoutePlanning, setIsRoutePlanning] = useState(false);
+  const [isDetailMode, setIsDetailMode] = useState(false); // 新增详情模式状态
   const [selectedFootprints, setSelectedFootprints] = useState<Footprint[]>([]);
   const [walkingRoute, setWalkingRoute] = useState<{
     path: [number, number][];
@@ -68,9 +69,13 @@ const Home: React.FC = () => {
     setIsRoutePlanning(newRoutePlanningState);
     
     if (!newRoutePlanningState) {
-      // 退出路线规划模式时，清空所有选择和路线
+      // 退出路线规划模式时，清空所有选择和路线，同时退出详情模式
       setSelectedFootprints([]);
       setWalkingRoute(null);
+      setIsDetailMode(false);
+    } else {
+      // 进入路线规划模式时，退出详情模式
+      setIsDetailMode(false);
     }
   };
 
@@ -90,12 +95,14 @@ const Home: React.FC = () => {
 
   // 处理从攻略库加载路线
   const handleLoadGuideRoute = (guide: Guide) => {
-    // 进入路线规划模式
-    setIsRoutePlanning(true);
+    // 从攻略进入时，进入详情模式而不是路线规划模式
+    setIsDetailMode(true);
+    setIsRoutePlanning(false);
     // 清空当前视图
     setSelectedFootprints([]);
     // 设置选中的足迹
     setSelectedFootprints(guide.footprints);
+    console.log('Loaded guide route in detail mode:', guide.name);
   };
 
   // 处理保存攻略
@@ -127,6 +134,7 @@ const Home: React.FC = () => {
         onRoutePlanChange={handleRoutePlanChange}
         walkingRoute={walkingRoute}
         isRoutePlanning={isRoutePlanning}
+        isDetailMode={isDetailMode} // 传递详情模式状态
         onRoutePlanToggle={handleRoutePlanToggle}
         onWalkingRouteChange={handleWalkingRouteChange}
         guides={guides}
@@ -149,6 +157,7 @@ const Home: React.FC = () => {
               onRoutePlanChange={handleRoutePlanChange}
               onWalkingRouteChange={handleWalkingRouteChange}
               isRoutePlanning={isRoutePlanning}
+              isDetailMode={isDetailMode} // 传递详情模式状态
               onWeatherDataChange={setKeyPointsWeather}
             />
           </Suspense>

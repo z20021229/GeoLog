@@ -27,6 +27,7 @@ interface SidebarProps {
   } | null;
   onSaveGuide?: (name: string, description: string) => void;
   isRoutePlanning: boolean;
+  isDetailMode?: boolean; // 新增详情模式属性
   onRoutePlanToggle: () => void;
   onWalkingRouteChange?: (route: {
     path: [number, number][];
@@ -55,6 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   walkingRoute = null,
   onSaveGuide,
   isRoutePlanning,
+  isDetailMode = false, // 新增详情模式属性
   onRoutePlanToggle,
   onWalkingRouteChange,
   guides = [],
@@ -124,221 +126,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     window.dispatchEvent(new CustomEvent('startRoutePreview'));
   };
 
-  // 生成分享海报
-  const handleGeneratePoster = async () => {
-    try {
-      // 创建海报容器
-      const posterContainer = document.createElement('div');
-      posterContainer.style.cssText = `
-        position: fixed;
-        top: -10000px;
-        left: -10000px;
-        width: 800px;
-        height: 1200px;
-        background: #1e293b;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        padding: 20px;
-        z-index: 9999;
-      `;
-      
-      // 获取地图元素
-      const mapElement = document.querySelector('.leaflet-container');
-      if (!mapElement) {
-        console.error('无法找到地图元素');
-        return;
-      }
-      
-      // 克隆地图元素
-      const mapClone = mapElement.cloneNode(true) as HTMLElement;
-      mapClone.style.cssText = `
-        width: 100%;
-        height: 600px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-      `;
-      
-      // 创建攻略信息容器
-      const guideInfoContainer = document.createElement('div');
-      guideInfoContainer.style.cssText = `
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      `;
-      
-      // 添加攻略标题
-      const guideTitle = document.createElement('h2');
-      guideTitle.textContent = '我的足迹攻略';
-      guideTitle.style.cssText = `
-        font-size: 24px;
-        font-weight: bold;
-        margin: 0;
-        text-align: center;
-      `;
-      guideInfoContainer.appendChild(guideTitle);
-      
-      // 添加统计信息
-      const statsContainer = document.createElement('div');
-      statsContainer.style.cssText = `
-        display: flex;
-        justify-content: space-around;
-        padding: 16px;
-        background: #334155;
-        border-radius: 8px;
-      `;
-      
-      const distanceStat = document.createElement('div');
-      distanceStat.innerHTML = `
-        <div style="font-size: 14px; color: #94a3b8;">总距离</div>
-        <div style="font-size: 20px; font-weight: bold;">${formatOSRMDistance(walkingRoute?.distance || 0)}</div>
-      `;
-      statsContainer.appendChild(distanceStat);
-      
-      const durationStat = document.createElement('div');
-      durationStat.innerHTML = `
-        <div style="font-size: 14px; color: #94a3b8;">预计耗时</div>
-        <div style="font-size: 20px; font-weight: bold;">${formatTime(walkingRoute?.duration || 0)}</div>
-      `;
-      statsContainer.appendChild(durationStat);
-      
-      const locationsStat = document.createElement('div');
-      locationsStat.innerHTML = `
-        <div style="font-size: 14px; color: #94a3b8;">地点数量</div>
-        <div style="font-size: 20px; font-weight: bold;">${selectedFootprints?.length || 0}个</div>
-      `;
-      statsContainer.appendChild(locationsStat);
-      
-      guideInfoContainer.appendChild(statsContainer);
-      
-      // 添加足迹列表
-      const footprintsTitle = document.createElement('h3');
-      footprintsTitle.textContent = '足迹清单';
-      footprintsTitle.style.cssText = `
-        font-size: 18px;
-        font-weight: bold;
-        margin: 0;
-      `;
-      guideInfoContainer.appendChild(footprintsTitle);
-      
-      const footprintsList = document.createElement('div');
-      footprintsList.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        max-height: 300px;
-        overflow-y: auto;
-      `;
-      
-      selectedFootprints?.forEach((footprint, index) => {
-        const footprintItem = document.createElement('div');
-        footprintItem.style.cssText = `
-          display: flex;
-          gap: 12px;
-          padding: 12px;
-          background: #334155;
-          border-radius: 6px;
-        `;
-        
-        const indexBadge = document.createElement('div');
-        indexBadge.textContent = (index + 1).toString();
-        indexBadge.style.cssText = `
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: #60a5fa;
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          font-weight: bold;
-          flex-shrink: 0;
-        `;
-        
-        const footprintInfo = document.createElement('div');
-        footprintInfo.style.cssText = `
-          flex: 1;
-          overflow: hidden;
-        `;
-        
-        const footprintName = document.createElement('div');
-        footprintName.textContent = footprint.name;
-        footprintName.style.cssText = `
-          font-weight: bold;
-          margin-bottom: 4px;
-        `;
-        
-        const footprintLocation = document.createElement('div');
-        footprintLocation.textContent = footprint.location;
-        footprintLocation.style.cssText = `
-          font-size: 12px;
-          color: #94a3b8;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        `;
-        
-        footprintInfo.appendChild(footprintName);
-        footprintInfo.appendChild(footprintLocation);
-        
-        footprintItem.appendChild(indexBadge);
-        footprintItem.appendChild(footprintInfo);
-        
-        footprintsList.appendChild(footprintItem);
-      });
-      
-      guideInfoContainer.appendChild(footprintsList);
-      
-      // 添加水印
-      const watermark = document.createElement('div');
-      watermark.textContent = 'GeoLog 记录我的足迹';
-      watermark.style.cssText = `
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        font-size: 14px;
-        color: #94a3b8;
-      `;
-      
-      // 构建海报
-      posterContainer.appendChild(mapClone);
-      posterContainer.appendChild(guideInfoContainer);
-      posterContainer.appendChild(watermark);
-      
-      // 添加到文档
-      document.body.appendChild(posterContainer);
-      
-      // 使用html2canvas截图（使用类型断言避免编译错误）
-      const html2canvas = (await import('html2canvas' as any)).default;
-      const canvas = await html2canvas(posterContainer, {
-        scale: 2,
-        useCORS: true,
-        logging: false
-      });
-      
-      // 移除海报容器
-      document.body.removeChild(posterContainer);
-      
-      // 下载图片
-      const link = document.createElement('a');
-      const date = new Date().toISOString().split('T')[0];
-      link.download = `足迹海报_${date}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg');
-      link.click();
-      
-      console.log('海报生成成功！');
-    } catch (error) {
-      console.error('生成海报失败:', error);
-      alert('生成海报失败，请重试');
-    }
-  };
+  // 生成分享海报功能已移除，因为html2canvas依赖问题
 
   if (isCollapsed) {
     return (
       <div className={`bg-card border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-16`}>
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center justify-between p-4 border-b border-border flex-none">
           <button
             onClick={onToggle}
             className="p-2 rounded-full hover:bg-accent transition-colors mx-auto"
@@ -366,7 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className="bg-card border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-64 flex flex-col relative">
+    <div className="bg-card border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-64 grid grid-template-rows:auto auto 1fr auto">
       {/* 添加统计面板样式 */}
       <style jsx>{`
         /* 给统计面板增加明显的视觉区分 */
@@ -390,8 +183,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col">
-        <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+      <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="grid grid-rows:[tabs]auto[buttons]auto[stats]auto[content]1fr">
           <Tabs.List className="flex border-b border-border">
             <Tabs.Trigger
               value="list"
@@ -418,7 +210,17 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* 路线规划按钮 */}
           <div className="p-4 border-b border-border">
-            {isRoutePlanning ? (
+            {isDetailMode ? (
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-primary text-primary-foreground hover:bg-primary/90 justify-center"
+                  onClick={handleRoutePlanToggle}
+                >
+                  <Route size={16} />
+                  进入编辑模式
+                </button>
+              </div>
+            ) : isRoutePlanning ? (
               <div className="flex gap-2">
                 <button
                   className="flex-1 flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-primary text-primary-foreground hover:bg-primary/90 justify-center"
@@ -447,8 +249,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* 路线统计面板 */}
-          {isRoutePlanning && selectedFootprints.length > 0 && (
-            <div className="route-stats-container flex-shrink-0">
+          {(isRoutePlanning || isDetailMode) && selectedFootprints.length > 0 && (
+            <div className="route-stats-container">
               <p className="text-center">已选 {selectedFootprints.length} 个点</p>
               {walkingRoute ? (
                 <div className="mt-2">
@@ -459,7 +261,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               ) : null}
               
               {/* 天气小贴士 */}
-              {walkingRoute && keyPointsWeather.end && (
+              {walkingRoute && keyPointsWeather.end ? (
                 <div className="mt-2">
                   {(() => {
                     // 检查路程是否超过10公里
@@ -481,10 +283,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                     return null;
                   })()}
                 </div>
+              ) : (
+                <p className="text-center text-gray-400 text-sm mt-2">天气加载中...</p>
               )}
               
               <div className="mt-3 flex justify-center gap-2">
-                {selectedFootprints.length > 2 && (
+                {isRoutePlanning && selectedFootprints.length > 2 && (
                   <button
                     className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                     onClick={async () => {
@@ -515,15 +319,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                     ✨ 优化顺序
                   </button>
                 )}
-                <button
-                  className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors"
-                  onClick={handleGeneratePoster}
-                >
-                  📸 生成海报
-                </button>
-                {selectedFootprints.length > 1 && (
+                {(isRoutePlanning || isDetailMode) && (
                   <button
-                    className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-accent text-accent-foreground hover:bg-accent/90 transition-colors"
+                    className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors"
                     onClick={handleStartPreview}
                   >
                     🚶 开始预览
@@ -532,67 +330,69 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
           )}
-
-          {/* 足迹列表：使用固定高度和强制滚动 */}
-          <Tabs.Content value="list" className="h-[calc(100vh-280px)] overflow-y-scroll !important p-4">
-            <FootprintList 
-              footprints={footprints} 
-              selectedFootprintId={selectedFootprintId} 
-              onSelectFootprint={onSelectFootprint} 
-              isRoutePlanning={isRoutePlanning}
-              selectedFootprints={selectedFootprints}
-              onRoutePlanChange={onRoutePlanChange}
-            />
-          </Tabs.Content>
-
-          {/* 数据统计：使用固定高度和强制滚动 */}
-          <Tabs.Content value="statistics" className="h-[calc(100vh-280px)] overflow-y-scroll !important p-4">
-            <StatisticsPanel footprints={footprints} />
-          </Tabs.Content>
           
-          {/* 我的攻略：使用固定高度和强制滚动 */}
-          <Tabs.Content value="guides" className="h-[calc(100vh-280px)] overflow-y-scroll !important p-4">
-            <div>
-              <h2 className="text-lg font-bold mb-4">我的攻略</h2>
-              <p className="text-sm text-muted-foreground mb-4">已保存的史诗旅程</p>
-              
-              {/* 真实攻略列表 */}
-          {guides.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>暂无保存的攻略</p>
-              <p className="text-xs mt-2">在路线规划模式下保存攻略后，将显示在这里</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {guides.map((guide) => (
-                <div 
-                  key={guide.id}
-                  className="p-3 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border"
-                  onClick={() => {
-                    // 加载攻略路线
-                    onLoadGuideRoute?.(guide);
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium">{guide.name}</h3>
-                    <span className="text-sm text-muted-foreground">{(guide.distance / 1000).toFixed(1)}公里</span>
+          {/* 内容区域：设置为overflow-y: auto */}
+          <div className="overflow-y-auto p-4">
+            {/* 足迹列表 */}
+            <Tabs.Content value="list" className="space-y-2">
+              <FootprintList 
+                footprints={footprints} 
+                selectedFootprintId={selectedFootprintId} 
+                onSelectFootprint={onSelectFootprint} 
+                isRoutePlanning={isRoutePlanning}
+                selectedFootprints={selectedFootprints}
+                onRoutePlanChange={onRoutePlanChange}
+              />
+            </Tabs.Content>
+
+            {/* 数据统计 */}
+            <Tabs.Content value="statistics" className="space-y-2">
+              <StatisticsPanel footprints={footprints} />
+            </Tabs.Content>
+            
+            {/* 我的攻略 */}
+            <Tabs.Content value="guides" className="space-y-4">
+              <div>
+                <h2 className="text-lg font-bold mb-4">我的攻略</h2>
+                <p className="text-sm text-muted-foreground mb-4">已保存的史诗旅程</p>
+                
+                {/* 真实攻略列表 */}
+                {guides.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>暂无保存的攻略</p>
+                    <p className="text-xs mt-2">在路线规划模式下保存攻略后，将显示在这里</p>
                   </div>
-                  {guide.description && (
-                    <p className="text-xs text-muted-foreground mt-1 truncate">{guide.description}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    包含{guide.footprints.length}个地点，预计耗时{formatTime(guide.duration)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-            </div>
-          </Tabs.Content>
+                ) : (
+                  <div className="space-y-4">
+                    {guides.map((guide) => (
+                      <div 
+                        key={guide.id}
+                        className="p-4 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border mb-4"
+                        onClick={() => {
+                          // 加载攻略路线
+                          onLoadGuideRoute?.(guide);
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium">{guide.name}</h3>
+                          <span className="text-sm text-muted-foreground">{(guide.distance / 1000).toFixed(1)}公里</span>
+                        </div>
+                        {guide.description && (
+                          <p className="text-xs text-muted-foreground mt-1 truncate">{guide.description}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          包含{guide.footprints.length}个地点，预计耗时{formatTime(guide.duration)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Tabs.Content>
+          </div>
         </Tabs.Root>
-      </div>
       
-      <div className="mt-auto p-4 border-t border-border">
+      <div className="p-4 border-t border-border">
         <div className="flex gap-2">
           <button
             onClick={handleExportClick}
