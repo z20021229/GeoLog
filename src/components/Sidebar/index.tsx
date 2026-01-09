@@ -149,11 +149,11 @@ const Sidebar: React.FC<SidebarProps> = ({
     setGuideDescription('');
   };
 
-  // 开始路线预览
-  const handleStartPreview = () => {
+  // 开始路线预览 - 暂时注释掉
+  /* const handleStartPreview = () => {
     // 触发路线预览事件
     window.dispatchEvent(new CustomEvent('startRoutePreview'));
-  };
+  }; */
 
   // 生成分享海报功能已移除，因为html2canvas依赖问题
 
@@ -188,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className="bg-[#0f172a] border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-80 flex flex-col">
+    <div className="w-[320px] h-[100vh] bg-[#0f172a] flex flex-col relative z-50">
       {/* 添加统计面板样式 */}
       <style jsx>{`
         /* 给统计面板增加明显的视觉区分 */
@@ -213,24 +213,24 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="flex flex-col flex-1">
-          <Tabs.List className="flex border-b border-border">
+          <Tabs.List className="flex border-b border-gray-700">
             <Tabs.Trigger
               value="list"
-              className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
+              className="flex-1 px-4 py-2 text-sm font-medium text-gray-400 hover:text-white data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-2 px-4"
             >
               <List size={16} />
               足迹列表
             </Tabs.Trigger>
             <Tabs.Trigger
               value="statistics"
-              className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
+              className="flex-1 px-4 py-2 text-sm font-medium text-gray-400 hover:text-white data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-2 px-4"
             >
               <BarChart3 size={16} />
               数据统计
             </Tabs.Trigger>
             <Tabs.Trigger
               value="guides"
-              className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
+              className="flex-1 px-4 py-2 text-sm font-medium text-gray-400 hover:text-white data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-2 px-4"
             >
               <Save size={16} />
               我的攻略
@@ -326,6 +326,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     ✨ 优化顺序
                   </button>
                 )}
+                {/* 开始预览按钮 - 暂时注释掉
                 {(isRoutePlanning || isDetailMode) && (
                   <button
                     className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors"
@@ -333,13 +334,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                   >
                     🚶 开始预览
                   </button>
-                )}
+                )} */}
               </div>
             </div>
           )}
           
           {/* 内容区域：设置为overflow-y: auto，并填充剩余空间 */}
-          <div className="overflow-y-auto p-4 flex-1 h-0">
+          <div className="flex-1 overflow-y-auto p-4">
             {/* 足迹列表 */}
             <Tabs.Content value="list" className="space-y-2">
               <ErrorBoundary>

@@ -423,8 +423,8 @@ const Map: React.FC<MapProps> = ({
   
   // 移除天气相关的检查逻辑
 
-  // 路线预览功能
-  useEffect(() => {
+  // 路线预览功能 - 暂时注释掉
+  /* useEffect(() => {
     // 初始化语音合成
     speechSynthesisRef.current = window.speechSynthesis;
     
@@ -550,7 +550,7 @@ const Map: React.FC<MapProps> = ({
         speechSynthesisRef.current.cancel();
       }
     };
-  }, [selectedFootprints, isClient]);
+  }, [selectedFootprints, isClient]); */
 
   if (loadError) {
     return (
