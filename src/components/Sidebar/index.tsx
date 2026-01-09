@@ -159,7 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className="bg-card border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-64 grid grid-template-rows:auto auto 1fr auto">
+    <div className="bg-card border-r border-border h-screen transition-all duration-300 ease-in-out overflow-hidden w-64 flex flex-col">
       {/* 添加统计面板样式 */}
       <style jsx>{`
         /* 给统计面板增加明显的视觉区分 */
@@ -183,7 +183,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="grid grid-rows:[tabs]auto[buttons]auto[stats]auto[content]1fr">
+      <Tabs.Root defaultValue="list" onValueChange={setActiveTab} className="flex flex-col flex-1">
           <Tabs.List className="flex border-b border-border">
             <Tabs.Trigger
               value="list"
@@ -331,8 +331,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
           
-          {/* 内容区域：设置为overflow-y: auto */}
-          <div className="overflow-y-auto p-4">
+          {/* 内容区域：设置为overflow-y: auto，并填充剩余空间 */}
+          <div className="overflow-y-auto p-4 flex-1">
             {/* 足迹列表 */}
             <Tabs.Content value="list" className="space-y-2">
               <FootprintList 

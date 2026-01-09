@@ -515,48 +515,43 @@ const Map: React.FC<MapProps> = ({
       Tornado: '🌪️'
     };
     
-    // 添加起点天气Marker
-    if (keyPointsWeather.start) {
-      const startIcon = weatherIcons[keyPointsWeather.start.weather] || '❓';
-      const startTemp = keyPointsWeather.start.temperature;
+    // 辅助函数：创建天气Marker
+    const createWeatherMarker = (coordinates: [number, number], weatherData: WeatherData | null | undefined) => {
+      let markerContent = '';
       
-      const startMarkerIcon = L.divIcon({
+      if (weatherData) {
+        const icon = weatherIcons[weatherData.weather] || '❓';
+        const temp = weatherData.temperature;
+        markerContent = `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.5); padding: 4px 8px; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                        <div style="font-size: 24px;">${icon}</div>
+                        <div style="font-size: 14px; font-weight: bold; color: white;">${temp}°C</div>
+                      </div>`;
+      } else {
+        // 天气获取失败时显示的内容
+        markerContent = `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.5); padding: 4px 8px; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                        <div style="font-size: 14px; font-weight: bold; color: white; text-align: center;">天气获取失败</div>
+                      </div>`;
+      }
+      
+      const markerIcon = L.divIcon({
         className: 'weather-marker',
-        html: `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.5); padding: 4px 8px; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
-                <div style="font-size: 24px;">${startIcon}</div>
-                <div style="font-size: 14px; font-weight: bold; color: white;">${startTemp}°C</div>
-              </div>`,
+        html: markerContent,
         iconSize: [60, 60],
         iconAnchor: [30, 30]
       });
       
-      const startMarker = L.marker(start, { icon: startMarkerIcon });
-      startMarker.addTo(mapRef.current);
-      weatherMarkersRef.current.push(startMarker);
-      console.log('Added start weather marker:', start);
-    }
+      const marker = L.marker(coordinates, { icon: markerIcon });
+      marker.addTo(mapRef.current);
+      weatherMarkersRef.current.push(marker);
+    };
+    
+    // 添加起点天气Marker
+    createWeatherMarker(start, keyPointsWeather.start);
     
     // 添加终点天气Marker
-    if (keyPointsWeather.end) {
-      const endIcon = weatherIcons[keyPointsWeather.end.weather] || '❓';
-      const endTemp = keyPointsWeather.end.temperature;
-      
-      const endMarkerIcon = L.divIcon({
-        className: 'weather-marker',
-        html: `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.5); padding: 4px 8px; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
-                <div style="font-size: 24px;">${endIcon}</div>
-                <div style="font-size: 14px; font-weight: bold; color: white;">${endTemp}°C</div>
-              </div>`,
-        iconSize: [60, 60],
-        iconAnchor: [30, 30]
-      });
-      
-      const endMarker = L.marker(end, { icon: endMarkerIcon });
-      endMarker.addTo(mapRef.current);
-      weatherMarkersRef.current.push(endMarker);
-      console.log('Added end weather marker:', end);
-    }
+    createWeatherMarker(end, keyPointsWeather.end);
     
+    console.log('Weather markers added successfully');
   }, [L, mapRef, walkingRoute, keyPointsWeather]);
   
   // 当选中足迹变化时，也检查是否需要获取天气数据（用于从攻略加载路线时）
