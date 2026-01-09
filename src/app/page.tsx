@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import Sidebar from '../components/Sidebar';
 import AddFootprintDialog from '../components/Dialog/AddFootprintDialog';
 import { Footprint, FootprintFormData, Guide } from '../types';
-import { WeatherData } from '../utils/weather';
 import { useFootprints } from '../hooks/useFootprints';
 
 // 使用 next/dynamic 动态导入地图组件，避免 SSR 错误
@@ -33,13 +32,6 @@ const Home: React.FC = () => {
     distance: number;
     duration: number;
   } | null>(null);
-  
-  // 天气数据相关状态
-  const [keyPointsWeather, setKeyPointsWeather] = useState<{
-    start?: WeatherData | null;
-    mid?: WeatherData | null;
-    end?: WeatherData | null;
-  }>({});
   
   // 添加足迹弹窗相关状态
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -140,7 +132,6 @@ const Home: React.FC = () => {
         guides={guides}
         onLoadGuideRoute={handleLoadGuideRoute}
         onSaveGuide={handleSaveGuideRoute}
-        keyPointsWeather={keyPointsWeather}
       />
       
       {/* Main Content - Map */}
@@ -158,7 +149,6 @@ const Home: React.FC = () => {
               onWalkingRouteChange={handleWalkingRouteChange}
               isRoutePlanning={isRoutePlanning}
               isDetailMode={isDetailMode} // 传递详情模式状态
-              onWeatherDataChange={setKeyPointsWeather}
             />
           </Suspense>
         </div>

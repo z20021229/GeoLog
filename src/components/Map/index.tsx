@@ -5,7 +5,6 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents, LayersControl, P
 import { Footprint } from '../../types';
 import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
 import { getOSRMWalkingRoute, formatOSRMDistance, formatTime } from '../../utils/osrm';
-import { getWeatherData, extractKeyPoints, WeatherData } from '../../utils/weather';
 import { MapPin } from 'lucide-react';
 
 interface MapProps {
@@ -23,11 +22,6 @@ interface MapProps {
   } | null) => void;
   isRoutePlanning?: boolean;
   isDetailMode?: boolean; // 新增详情模式属性
-  onWeatherDataChange?: (weatherData: {
-    start?: WeatherData | null;
-    mid?: WeatherData | null;
-    end?: WeatherData | null;
-  }) => void;
 }
 
 interface MapViewProps {
@@ -214,8 +208,7 @@ const Map: React.FC<MapProps> = ({
   onRoutePlanChange,
   onWalkingRouteChange,
   isRoutePlanning = false,
-  isDetailMode = false, // 新增详情模式属性
-  onWeatherDataChange
+  isDetailMode = false // 新增详情模式属性
 }) => {
   if (typeof window === 'undefined') {
     return (
@@ -266,22 +259,6 @@ const Map: React.FC<MapProps> = ({
   const previewProgressRef = useRef(0);
   const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
-  
-  // 天气数据相关状态 - 使用静态模拟数据
-  const [keyPointsWeather, setKeyPointsWeather] = useState<{
-    start?: WeatherData | null;
-    mid?: WeatherData | null;
-    end?: WeatherData | null;
-  }>({
-    // 使用静态模拟数据，不调用真实API
-    start: { temperature: 22, weather: 'Clear', icon: '01d', description: '晴', humidity: 50, windSpeed: 3 },
-    end: { temperature: 22, weather: 'Clear', icon: '01d', description: '晴', humidity: 50, windSpeed: 3 }
-  });
-  
-  // 当天气数据变化时，调用回调函数传递给父组件
-  useEffect(() => {
-    onWeatherDataChange?.(keyPointsWeather);
-  }, [keyPointsWeather, onWeatherDataChange]);
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -682,45 +659,11 @@ const Map: React.FC<MapProps> = ({
         />
         
         {footprints.map((footprint) => {
-          // 检查当前足迹是否是选中足迹列表中的起点、中点或终点
-          let weatherIcon = undefined;
-          if (walkingRoute?.path && selectedFootprints?.length > 1) {
-            const selectedFootprintIds = selectedFootprints.map(fp => fp.id);
-            if (selectedFootprintIds.includes(footprint.id)) {
-              const index = selectedFootprintIds.indexOf(footprint.id);
-              // 获取天气数据
-              const weatherData = index === 0 ? keyPointsWeather.start : 
-                                index === Math.floor(selectedFootprints.length / 2) ? keyPointsWeather.mid : 
-                                index === selectedFootprints.length - 1 ? keyPointsWeather.end : undefined;
-              if (weatherData) {
-                // 使用天气数据生成图标
-                const weatherIcons: Record<string, string> = {
-                  Clear: '☀️',
-                  Clouds: '☁️',
-                  Rain: '🌧️',
-                  Drizzle: '🌦️',
-                  Thunderstorm: '⛈️',
-                  Snow: '❄️',
-                  Mist: '🌫️',
-                  Smoke: '🌫️',
-                  Haze: '🌫️',
-                  Dust: '🌫️',
-                  Fog: '🌫️',
-                  Sand: '🌫️',
-                  Ash: '🌫️',
-                  Squall: '💨',
-                  Tornado: '🌪️'
-                };
-                weatherIcon = weatherIcons[weatherData.weather] || '❓';
-              }
-            }
-          }
-          
           return (
             <Marker 
               key={footprint.id} 
               position={footprint.coordinates} 
-              icon={createCustomIcon(L, footprint.category, footprint.id, weatherIcon)}
+              icon={createCustomIcon(L, footprint.category, footprint.id)}
               eventHandlers={{
                 click: () => {
                   console.log('Marker clicked:', footprint.name);

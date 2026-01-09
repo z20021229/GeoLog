@@ -6,12 +6,15 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint, Guide } from '../../types';
 import { calculateTotalDistance, formatDistance } from '../../utils/distance';
 import { formatOSRMDistance, formatTime, getOSRMTripRoute } from '../../utils/osrm';
-import { WeatherData } from '../../utils/weather';
 import StatisticsPanel from './StatisticsPanel';
 import FootprintList from './FootprintList';
 
 // 错误边界组件 - 防止子组件报错导致整个侧边栏崩溃
-class ErrorBoundary extends React.Component {
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
   state = { hasError: false, error: null };
 
   static getDerivedStateFromError(error: any) {
@@ -66,11 +69,6 @@ interface SidebarProps {
   } | null) => void;
   guides?: Guide[];
   onLoadGuideRoute?: (guide: Guide) => void;
-  keyPointsWeather?: {
-    start?: WeatherData | null;
-    mid?: WeatherData | null;
-    end?: WeatherData | null;
-  };
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -90,8 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onRoutePlanToggle,
   onWalkingRouteChange,
   guides = [],
-  onLoadGuideRoute,
-  keyPointsWeather = {}
+  onLoadGuideRoute
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('list');
@@ -290,32 +287,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <p className="text-center mt-2">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</p>
               ) : null}
               
-              {/* 天气小贴士 */}
-              {walkingRoute && keyPointsWeather.end ? (
-                <div className="mt-2">
-                  {(() => {
-                    // 检查路程是否超过10公里
-                    const isLongDistance = walkingRoute.distance > 10000;
-                    // 检查终点是否有雨
-                    const endHasRain = keyPointsWeather.end?.weather?.includes('Rain') || keyPointsWeather.end?.weather?.includes('Drizzle');
-                    
-                    if (isLongDistance && endHasRain) {
-                      return <p className="text-center text-yellow-400">💡 建议带伞，目的地预计有小雨</p>;
-                    } else if (keyPointsWeather.end?.weather?.includes('Snow')) {
-                      return <p className="text-center text-blue-300">💡 注意保暖，目的地预计有雪</p>;
-                    } else if (keyPointsWeather.end?.weather?.includes('Clear')) {
-                      return <p className="text-center text-green-300">💡 天气晴朗，适合出行</p>;
-                    } else if (keyPointsWeather.end?.weather?.includes('Clouds')) {
-                      return <p className="text-center text-gray-300">💡 天气多云，舒适宜人</p>;
-                    } else if (keyPointsWeather.end?.weather?.includes('Thunderstorm')) {
-                      return <p className="text-center text-red-300">💡 注意安全，目的地预计有雷雨</p>;
-                    }
-                    return null;
-                  })()}
-                </div>
-              ) : (
-                <p className="text-center text-gray-400 text-sm mt-2">天气加载中...</p>
-              )}
+              {/* 天气小贴士 - 静态展示 */}
+              <div className="mt-2">
+                <p className="text-center text-gray-300">☀️ 20°C</p>
+              </div>
               
               <div className="mt-3 flex justify-center gap-2">
                 {isRoutePlanning && selectedFootprints.length > 2 && (
@@ -362,7 +337,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
           
           {/* 内容区域：设置为overflow-y: auto，并填充剩余空间 */}
-          <div className="overflow-y-auto p-4 flex-1">
+          <div className="overflow-y-auto p-4 flex-1 h-0">
             {/* 足迹列表 */}
             <Tabs.Content value="list" className="space-y-2">
               <ErrorBoundary>
