@@ -408,41 +408,45 @@ const Sidebar: React.FC<SidebarProps> = ({
           </ErrorBoundary>
         ) : activeTab === 'guides' ? (
           <ErrorBoundary>
-            <div>
-              <h2 className="text-lg font-bold mb-4 text-white">我的攻略</h2>
-              <p className="text-sm text-gray-400 mb-4">已保存的史诗旅程</p>
+            <div className="h-full flex flex-col">
+              <div>
+                <h2 className="text-lg font-bold mb-4 text-white">我的攻略</h2>
+                <p className="text-sm text-gray-400 mb-4">已保存的史诗旅程</p>
+              </div>
               
-              {/* 真实攻略列表 */}
-              {guides.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <p>暂无保存的攻略</p>
-                  <p className="text-xs mt-2">在路线规划模式下保存攻略后，将显示在这里</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {guides.map((guide) => (
-                    <div 
-                      key={guide.id}
-                      className="p-4 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors border border-gray-700 mb-4"
-                      onClick={() => {
-                        // 加载攻略路线
-                        onLoadGuideRoute?.(guide);
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-white">{guide.name}</h3>
-                        <span className="text-sm text-gray-400">{(guide.distance / 1000).toFixed(1)}公里</span>
+              {/* 真实攻略列表 - 添加独立滚动容器 */}
+              <div className="flex-1 overflow-y-auto scrollbar-width-thin">
+                {guides.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <p>暂无保存的攻略</p>
+                    <p className="text-xs mt-2">在路线规划模式下保存攻略后，将显示在这里</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {guides.map((guide) => (
+                      <div 
+                        key={guide.id}
+                        className="p-4 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 cursor-pointer transition-colors border border-gray-700 mb-4"
+                        onClick={() => {
+                          // 加载攻略路线
+                          onLoadGuideRoute?.(guide);
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-white">{guide.name}</h3>
+                          <span className="text-sm text-gray-400">{(guide.distance / 1000).toFixed(1)}公里</span>
+                        </div>
+                        {guide.description && (
+                          <p className="text-xs text-gray-500 mt-1 truncate">{guide.description}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">
+                          包含{guide.footprints.length}个地点，预计耗时{formatTime(guide.duration)}
+                        </p>
                       </div>
-                      {guide.description && (
-                        <p className="text-xs text-gray-500 mt-1 truncate">{guide.description}</p>
-                      )}
-                      <p className="text-xs text-gray-500 mt-1">
-                        包含{guide.footprints.length}个地点，预计耗时{formatTime(guide.duration)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </ErrorBoundary>
         ) : null}

@@ -505,7 +505,7 @@ const Map: React.FC<MapProps> = ({
                   easeLinearity: 0.05, // 进一步减少线性度，使曲线更自然流畅
                   animate: true,
                   // 使用easeInOutCubic缓动函数，提供更平滑的加速和减速
-                  easeFn: (t) => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1 // 三次方缓动函数
+                  easeFn: (t: number) => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1 // 三次方缓动函数
                 });
               } else {
                 console.error('Map ref is null during flyTo');
