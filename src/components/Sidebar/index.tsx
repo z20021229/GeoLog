@@ -161,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* 路线统计面板 */}
           {isRoutePlanning && selectedFootprints.length > 0 && (
-            <div className="route-stats-container">
+            <div className="route-stats-container flex-shrink-0">
               <p className="text-center">已选 {selectedFootprints.length} 个点</p>
               {walkingRoute ? (
                 <div className="mt-2">

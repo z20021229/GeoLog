@@ -143,17 +143,17 @@ const FootprintList: React.FC<FootprintListProps> = ({
                         <img
                           src={footprint.image}
                           alt={footprint.name}
-                          className={`w-16 h-16 object-cover rounded-md flex-shrink-0 ${isRoutePlanning ? '' : 'ml-0'}`}
+                          className={`w-12 h-12 object-cover rounded-md flex-shrink-0 ${isRoutePlanning ? '' : 'ml-0'}`}
                         />
                       )}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium truncate">{footprint.name}</h3>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                           <Calendar size={14} />
-                          <span>{formatDate(footprint.date)}</span>
+                          <span className="truncate">{formatDate(footprint.date)}</span>
                         </div>
                         {footprint.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{footprint.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1 truncate">{footprint.description}</p>
                         )}
                       </div>
                     </div>
@@ -202,7 +202,7 @@ const FootprintList: React.FC<FootprintListProps> = ({
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                   <span className="truncate">{footprint.location}</span>
                   <Calendar size={14} />
-                  <span>{formatDate(footprint.date)}</span>
+                  <span className="truncate">{formatDate(footprint.date)}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${footprint.category === '探店' ? 'bg-red-500/20 text-red-300' : 
