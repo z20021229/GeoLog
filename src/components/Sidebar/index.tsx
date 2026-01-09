@@ -162,7 +162,16 @@ const Sidebar: React.FC<SidebarProps> = ({
     setPosterStyle(style);
     console.log(`生成${style === 'film' ? '电影底片' : '极简杂志'}风格海报`);
     // 这里可以添加实际的海报生成逻辑，使用html2canvas等库
-    alert(`已切换为${style === 'film' ? '电影底片' : '极简杂志'}风格海报`);
+    
+    // 模拟海报生成过程
+    const generateBtn = document.querySelector(`[data-style="${style}"]`);
+    if (generateBtn) {
+      generateBtn.classList.add('animate-pulse');
+      setTimeout(() => {
+        generateBtn.classList.remove('animate-pulse');
+        alert(`已切换为${style === 'film' ? '电影底片' : '极简杂志'}风格海报`);
+      }, 500);
+    }
   };
 
   if (isCollapsed) {
@@ -208,6 +217,23 @@ const Sidebar: React.FC<SidebarProps> = ({
           margin: 10px;
           color: #60a5fa; /* 天蓝色字体 */
           font-size: 0.875rem;
+        }
+        
+        /* 云朵飘动动画 */
+        @keyframes cloud {
+          0% {
+            transform: translateX(0) translateY(0);
+          }
+          50% {
+            transform: translateX(5px) translateY(-3px);
+          }
+          100% {
+            transform: translateX(0) translateY(0);
+          }
+        }
+        
+        .animate-cloud {
+          animation: cloud 3s ease-in-out infinite;
         }
       `}</style>
       {/* 头部区域 - 固定高度，flex-shrink-0防止被挤压 */}
@@ -317,10 +343,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             
             {/* 沿途天气预览 - 动态云朵图标 */}
             <div className="mt-2">
-              <p className="text-center text-gray-300 flex items-center justify-center gap-2 animate-clouds">
-                <span className="inline-block animate-pulse">☁️</span>
-                <span className="inline-block animate-pulse" style={{ animationDelay: '0.5s' }}>☁️</span>
-                <span className="inline-block animate-pulse" style={{ animationDelay: '1s' }}>☁️</span>
+              <p className="text-center text-gray-300 flex items-center justify-center gap-2">
+                <span className="inline-block animate-cloud animate-pulse">☁️</span>
+                <span className="inline-block animate-cloud animate-pulse" style={{ animationDelay: '0.5s', transform: 'scale(0.8)' }}>☁️</span>
+                <span className="inline-block animate-cloud animate-pulse" style={{ animationDelay: '1s', transform: 'scale(1.2)' }}>☁️</span>
                 <span className="ml-2">18-22°C</span>
               </p>
             </div>
@@ -430,20 +456,23 @@ const Sidebar: React.FC<SidebarProps> = ({
         <h3 className="text-sm font-medium text-white mb-2">生成海报</h3>
         <div className="grid grid-cols-2 gap-2">
           <button
+            data-style="film"
             onClick={() => handleGeneratePoster('film')}
-            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-colors text-sm border ${posterStyle === 'film' ? 'border-primary bg-primary/20 text-primary' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white'}`}
+            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-all text-sm border ${posterStyle === 'film' ? 'border-primary bg-primary/20 text-primary shadow-lg shadow-primary/30' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white hover:shadow-md'}`}
           >
             <span className="text-lg">🎬</span>
             <span>电影底片</span>
           </button>
           <button
+            data-style="minimal"
             onClick={() => handleGeneratePoster('minimal')}
-            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-colors text-sm border ${posterStyle === 'minimal' ? 'border-primary bg-primary/20 text-primary' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white'}`}
+            className={`flex items-center justify-center gap-2 p-2 rounded-md transition-all text-sm border ${posterStyle === 'minimal' ? 'border-primary bg-primary/20 text-primary shadow-lg shadow-primary/30' : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 text-white hover:shadow-md'}`}
           >
             <span className="text-lg">📸</span>
             <span>极简杂志</span>
           </button>
         </div>
+        <p className="text-xs text-gray-500 mt-2">点击选择海报风格，一键生成精美足迹海报</p>
       </div>
       
       {/* 底部区域 - 固定高度，吸附在底部 */}

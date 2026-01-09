@@ -499,13 +499,13 @@ const Map: React.FC<MapProps> = ({
                 
                 mapRef.current.on('moveend', onMoveEnd);
                 
-                // 优化flyTo参数，添加优雅的弧度和更平滑的曲线
+                // 优化flyTo参数，添加优雅的弧度和更平滑的曲线，模拟航拍无人机效果
                 mapRef.current.flyTo(footprint.coordinates, 15, {
-                  duration: 4, // 增加动画时间，使飞行更平滑
-                  easeLinearity: 0.1, // 减少线性度，使曲线更优雅
+                  duration: 5, // 增加动画时间，使飞行更从容优雅
+                  easeLinearity: 0.05, // 进一步减少线性度，使曲线更自然流畅
                   animate: true,
-                  // 使用easeInOutQuad缓动函数，使动画开始和结束更平滑
-                  easeFn: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t // 缓动函数
+                  // 使用easeInOutCubic缓动函数，提供更平滑的加速和减速
+                  easeFn: (t) => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1 // 三次方缓动函数
                 });
               } else {
                 console.error('Map ref is null during flyTo');
