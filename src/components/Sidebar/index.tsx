@@ -6,6 +6,7 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint, Guide } from '../../types';
 import { calculateTotalDistance, formatDistance } from '../../utils/distance';
 import { formatOSRMDistance, formatTime, getOSRMTripRoute } from '../../utils/osrm';
+import { WeatherData } from '../../utils/weather';
 import StatisticsPanel from './StatisticsPanel';
 import FootprintList from './FootprintList';
 
@@ -34,6 +35,11 @@ interface SidebarProps {
   } | null) => void;
   guides?: Guide[];
   onLoadGuideRoute?: (guide: Guide) => void;
+  keyPointsWeather?: {
+    start?: WeatherData | null;
+    mid?: WeatherData | null;
+    end?: WeatherData | null;
+  };
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -52,7 +58,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onRoutePlanToggle,
   onWalkingRouteChange,
   guides = [],
-  onLoadGuideRoute
+  onLoadGuideRoute,
+  keyPointsWeather = {}
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('list');
@@ -450,6 +457,32 @@ const Sidebar: React.FC<SidebarProps> = ({
               ) : selectedFootprints.length > 1 ? (
                 <p className="text-center mt-2">直线距离: {formatDistance(calculateTotalDistance(selectedFootprints.map(fp => fp.coordinates)))}</p>
               ) : null}
+              
+              {/* 天气小贴士 */}
+              {walkingRoute && keyPointsWeather.end && (
+                <div className="mt-2">
+                  {(() => {
+                    // 检查路程是否超过10公里
+                    const isLongDistance = walkingRoute.distance > 10000;
+                    // 检查终点是否有雨
+                    const endHasRain = keyPointsWeather.end?.weather?.includes('Rain') || keyPointsWeather.end?.weather?.includes('Drizzle');
+                    
+                    if (isLongDistance && endHasRain) {
+                      return <p className="text-center text-yellow-400">💡 建议带伞，目的地预计有小雨</p>;
+                    } else if (keyPointsWeather.end?.weather?.includes('Snow')) {
+                      return <p className="text-center text-blue-300">💡 注意保暖，目的地预计有雪</p>;
+                    } else if (keyPointsWeather.end?.weather?.includes('Clear')) {
+                      return <p className="text-center text-green-300">💡 天气晴朗，适合出行</p>;
+                    } else if (keyPointsWeather.end?.weather?.includes('Clouds')) {
+                      return <p className="text-center text-gray-300">💡 天气多云，舒适宜人</p>;
+                    } else if (keyPointsWeather.end?.weather?.includes('Thunderstorm')) {
+                      return <p className="text-center text-red-300">💡 注意安全，目的地预计有雷雨</p>;
+                    }
+                    return null;
+                  })()}
+                </div>
+              )}
+              
               <div className="mt-3 flex justify-center gap-2">
                 {selectedFootprints.length > 2 && (
                   <button

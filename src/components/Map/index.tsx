@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents, LayersControl, P
 import { Footprint } from '../../types';
 import { checkBrowserSupport, isMobile, showError } from '../../utils/compatibility';
 import { getOSRMWalkingRoute, formatOSRMDistance, formatTime } from '../../utils/osrm';
+import { getWeatherData, extractKeyPoints, WeatherData } from '../../utils/weather';
 import { MapPin } from 'lucide-react';
 
 interface MapProps {
@@ -21,6 +22,11 @@ interface MapProps {
     duration: number;
   } | null) => void;
   isRoutePlanning?: boolean;
+  onWeatherDataChange?: (weatherData: {
+    start?: WeatherData | null;
+    mid?: WeatherData | null;
+    end?: WeatherData | null;
+  }) => void;
 }
 
 interface MapViewProps {
@@ -143,8 +149,8 @@ const MapEvents: React.FC<MapEventsProps> = ({ onMapClick, tempMarker, setTempMa
   return null;
 };
 
-// 创建自定义图标，使用 lucide-react 的 MapPin 图标，并添加动画效果
-const createCustomIcon = (L: any, category: string, footprintId?: string) => {
+// 创建自定义图标，使用 lucide-react 的 MapPin 图标，并添加动画效果和天气图标
+const createCustomIcon = (L: any, category: string, footprintId?: string, weatherIcon?: string) => {
   const colors: Record<string, string> = {
     '探店': '#ef4444',
     '户外': '#10b981',
@@ -163,11 +169,17 @@ const createCustomIcon = (L: any, category: string, footprintId?: string) => {
   // 添加footprintId到HTML元素上
   const footprintIdAttr = footprintId ? `data-footprint-id="${footprintId}"` : '';
   
+  // 天气图标HTML
+  const weatherIconHtml = weatherIcon ? `<div class="weather-icon">${weatherIcon}</div>` : '';
+  
   return L.divIcon({
     // 添加动画类名
     className: 'custom-leaflet-marker marker-animate',
-    html: `<div class="marker-container animate-pop" ${footprintIdAttr}>${svgIcon}</div>`,
-    iconSize: [28, 38],
+    html: `<div class="marker-container animate-pop" ${footprintIdAttr}>
+            ${svgIcon}
+            ${weatherIconHtml}
+          </div>`,
+    iconSize: [28, 50], // 增加高度以容纳天气图标
     iconAnchor: [14, 38],
     popupAnchor: [0, -38],
   });
@@ -200,7 +212,8 @@ const Map: React.FC<MapProps> = ({
   selectedFootprints = [],
   onRoutePlanChange,
   onWalkingRouteChange,
-  isRoutePlanning = false
+  isRoutePlanning = false,
+  onWeatherDataChange
 }) => {
   if (typeof window === 'undefined') {
     return (
@@ -251,6 +264,18 @@ const Map: React.FC<MapProps> = ({
   const previewProgressRef = useRef(0);
   const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
+  
+  // 天气数据相关状态
+  const [keyPointsWeather, setKeyPointsWeather] = useState<{
+    start?: WeatherData | null;
+    mid?: WeatherData | null;
+    end?: WeatherData | null;
+  }>({});
+  
+  // 当天气数据变化时，调用回调函数传递给父组件
+  useEffect(() => {
+    onWeatherDataChange?.(keyPointsWeather);
+  }, [keyPointsWeather, onWeatherDataChange]);
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -408,6 +433,38 @@ const Map: React.FC<MapProps> = ({
       }
     }
   }, [selectedFootprints, walkingRoute, isClient]);
+  
+  // 当路线变化时，获取三个关键点的天气数据
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      if (!walkingRoute?.path || walkingRoute.path.length < 2) {
+        return;
+      }
+      
+      try {
+        // 提取起点、中点、终点
+        const [start, mid, end] = extractKeyPoints(walkingRoute.path);
+        
+        // 并行获取三个点的天气数据
+        const [startWeather, midWeather, endWeather] = await Promise.all([
+          getWeatherData(start),
+          getWeatherData(mid),
+          getWeatherData(end)
+        ]);
+        
+        // 更新天气数据状态
+        setKeyPointsWeather({
+          start: startWeather,
+          mid: midWeather,
+          end: endWeather
+        });
+      } catch (error) {
+        console.error('Failed to fetch weather data:', error);
+      }
+    };
+    
+    fetchWeatherData();
+  }, [walkingRoute]);
 
   // 路线预览功能
   useEffect(() => {
@@ -607,37 +664,73 @@ const Map: React.FC<MapProps> = ({
           setTempMarker={setTempMarker}
         />
         
-        {footprints.map((footprint) => (
-          <Marker 
-            key={footprint.id} 
-            position={footprint.coordinates} 
-            icon={createCustomIcon(L, footprint.category, footprint.id)}
-            eventHandlers={{
-              click: () => {
-                console.log('Marker clicked:', footprint.name);
-                setTargetFootprint(footprint);
-                
-                if (isRoutePlanning && onRoutePlanChange) {
-                  // 只有在路线规划模式下，才处理选点逻辑
-                  const isSelected = selectedFootprints?.some(fp => fp.id === footprint.id) || false;
-                  let newSelectedFootprints: Footprint[];
-                  
-                  if (isSelected) {
-                    // 取消选择
-                    newSelectedFootprints = (selectedFootprints || []).filter(fp => fp.id !== footprint.id);
-                    console.log('Deselecting point:', footprint.id, 'Name:', footprint.name);
-                  } else {
-                    // 添加选择
-                    newSelectedFootprints = [...(selectedFootprints || []), footprint];
-                    console.log('Selecting point:', footprint.id, 'Name:', footprint.name);
-                  }
-                  
-                  onRoutePlanChange(newSelectedFootprints);
-                }
+        {footprints.map((footprint) => {
+          // 检查当前足迹是否是选中足迹列表中的起点、中点或终点
+          let weatherIcon = undefined;
+          if (walkingRoute?.path && selectedFootprints?.length > 1) {
+            const selectedFootprintIds = selectedFootprints.map(fp => fp.id);
+            if (selectedFootprintIds.includes(footprint.id)) {
+              const index = selectedFootprintIds.indexOf(footprint.id);
+              // 获取天气数据
+              const weatherData = index === 0 ? keyPointsWeather.start : 
+                                index === Math.floor(selectedFootprints.length / 2) ? keyPointsWeather.mid : 
+                                index === selectedFootprints.length - 1 ? keyPointsWeather.end : undefined;
+              if (weatherData) {
+                // 使用天气数据生成图标
+                const weatherIcons: Record<string, string> = {
+                  Clear: '☀️',
+                  Clouds: '☁️',
+                  Rain: '🌧️',
+                  Drizzle: '🌦️',
+                  Thunderstorm: '⛈️',
+                  Snow: '❄️',
+                  Mist: '🌫️',
+                  Smoke: '🌫️',
+                  Haze: '🌫️',
+                  Dust: '🌫️',
+                  Fog: '🌫️',
+                  Sand: '🌫️',
+                  Ash: '🌫️',
+                  Squall: '💨',
+                  Tornado: '🌪️'
+                };
+                weatherIcon = weatherIcons[weatherData.weather] || '❓';
               }
-            }}
-          />
-        ))}
+            }
+          }
+          
+          return (
+            <Marker 
+              key={footprint.id} 
+              position={footprint.coordinates} 
+              icon={createCustomIcon(L, footprint.category, footprint.id, weatherIcon)}
+              eventHandlers={{
+                click: () => {
+                  console.log('Marker clicked:', footprint.name);
+                  setTargetFootprint(footprint);
+                  
+                  if (isRoutePlanning && onRoutePlanChange) {
+                    // 只有在路线规划模式下，才处理选点逻辑
+                    const isSelected = selectedFootprints?.some(fp => fp.id === footprint.id) || false;
+                    let newSelectedFootprints: Footprint[];
+                    
+                    if (isSelected) {
+                      // 取消选择
+                      newSelectedFootprints = (selectedFootprints || []).filter(fp => fp.id !== footprint.id);
+                      console.log('Deselecting point:', footprint.id, 'Name:', footprint.name);
+                    } else {
+                      // 添加选择
+                      newSelectedFootprints = [...(selectedFootprints || []), footprint];
+                      console.log('Selecting point:', footprint.id, 'Name:', footprint.name);
+                    }
+                    
+                    onRoutePlanChange(newSelectedFootprints);
+                  }
+                }
+              }}
+            />
+          );
+        })}
         
         {tempMarker && (
           <Marker position={tempMarker} icon={createTemporaryIcon(L)}>
@@ -705,6 +798,20 @@ const Map: React.FC<MapProps> = ({
           
           .animate-bounce {
             animation: bounce 1s ease-in-out;
+          }
+          
+          /* 天气图标样式 */
+          .weather-icon {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            padding: 2px;
+            backdrop-filter: blur(2px);
           }
           
           /* 流动蚂蚁线动画 */
