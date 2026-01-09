@@ -118,6 +118,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  // 显示Toast提示
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type });
+    }, 3000);
+  };
+
   // 处理路线规划模式切换，使用外部传入的回调函数
   const handleRoutePlanToggle = () => {
     onRoutePlanToggle();
@@ -161,6 +169,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
   // 路线优化加载状态
   const [isOptimizingRoute, setIsOptimizingRoute] = useState(false);
+  // Toast提示状态
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   
   // 真正的海报生成功能 - 支持不同风格
   const handleGeneratePoster = async (style: 'film' | 'minimal') => {
@@ -459,15 +469,21 @@ const Sidebar: React.FC<SidebarProps> = ({
                             duration: tripResult.duration
                           });
                         }
+                        // 显示成功Toast提示
+                        showToast(`路线已优化，总里程 ${formatOSRMDistance(tripResult.distance)}`);
                       } else {
                         // 优化失败，给出提示
                         console.warn('路线优化失败，可能包含无法陆路到达的点位');
+                        showToast('路线优化失败，可能包含无法陆路到达的点位', 'error');
                       }
-                    } catch (error) {
+                    } catch (error: any) {
                       console.error('Error optimizing route:', error);
                       // 捕获AbortError，给出友好提示
-                      if (error.name === 'AbortError') {
+                      if (error?.name === 'AbortError') {
                         console.warn('路线优化超时，可能包含无法陆路到达的点位');
+                        showToast('路线优化超时，可能包含无法陆路到达的点位', 'error');
+                      } else {
+                        showToast('路线优化失败，请重试', 'error');
                       }
                     } finally {
                       setIsOptimizingRoute(false);
@@ -658,6 +674,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* Toast提示组件 */}
+      {toast.show && (
+        <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[2000] px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+          {toast.message}
         </div>
       )}
     </div>
