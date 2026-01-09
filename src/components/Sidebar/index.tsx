@@ -5,7 +5,7 @@ import { Menu, X, Download, Upload, List, BarChart3, MapPin, Route, Plus, Save }
 import * as Tabs from '@radix-ui/react-tabs';
 import { Footprint } from '../../types';
 import { calculateTotalDistance, formatDistance } from '../../utils/distance';
-import { formatOSRMDistance, formatTime, optimizeRouteOrder } from '../../utils/osrm';
+import { formatOSRMDistance, formatTime, getOSRMTripRoute } from '../../utils/osrm';
 import StatisticsPanel from './StatisticsPanel';
 import FootprintList from './FootprintList';
 
@@ -27,6 +27,12 @@ interface SidebarProps {
   onSaveRoute?: () => void;
   isRoutePlanning: boolean;
   onRoutePlanToggle: () => void;
+  onWalkingRouteChange?: (route: {
+    path: [number, number][];
+    distance: number;
+    duration: number;
+  } | null) => void;
+  onLoadGuideRoute?: (routeType: '96km' | '500km') => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -42,7 +48,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   walkingRoute = null,
   onSaveRoute,
   isRoutePlanning,
-  onRoutePlanToggle
+  onRoutePlanToggle,
+  onWalkingRouteChange,
+  onLoadGuideRoute
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('list');
@@ -146,6 +154,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               <BarChart3 size={16} />
               数据统计
             </Tabs.Trigger>
+            <Tabs.Trigger
+              value="guides"
+              className="flex-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors flex items-center gap-2 px-4"
+            >
+              <Save size={16} />
+              我的攻略
+            </Tabs.Trigger>
           </Tabs.List>
 
           {/* 路线规划按钮 */}
@@ -197,9 +212,29 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="mt-3 flex justify-center">
                   <button
                     className="flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                    onClick={() => {
-                      const optimizedFootprints = optimizeRouteOrder(selectedFootprints);
-                      onRoutePlanChange?.(optimizedFootprints);
+                    onClick={async () => {
+                      try {
+                        // 调用OSRM的trip接口获取优化路径
+                        const coordinates = selectedFootprints.map(fp => fp.coordinates);
+                        const tripResult = await getOSRMTripRoute(coordinates);
+                        
+                        if (tripResult) {
+                          // 根据优化后的顺序重新排列足迹
+                          const optimizedFootprints = tripResult.optimizedOrder.map(idx => selectedFootprints[idx]);
+                          // 更新选中的足迹顺序，触发路径重新渲染
+                          onRoutePlanChange?.(optimizedFootprints);
+                          // 如果有路线更新回调，直接传递优化后的路径
+                          if (onWalkingRouteChange) {
+                            onWalkingRouteChange({
+                              path: tripResult.path,
+                              distance: tripResult.distance,
+                              duration: tripResult.duration
+                            });
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Error optimizing route:', error);
+                      }
                     }}
                   >
                     ✨ 优化顺序
@@ -224,6 +259,62 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* 数据统计：使用固定高度和强制滚动 */}
           <Tabs.Content value="statistics" className="h-[calc(100vh-280px)] overflow-y-scroll !important p-4">
             <StatisticsPanel footprints={footprints} />
+          </Tabs.Content>
+          
+          {/* 我的攻略：使用固定高度和强制滚动 */}
+          <Tabs.Content value="guides" className="h-[calc(100vh-280px)] overflow-y-scroll !important p-4">
+            <div>
+              <h2 className="text-lg font-bold mb-4">我的攻略</h2>
+              <p className="text-sm text-muted-foreground mb-4">已保存的史诗旅程</p>
+              
+              {/* 模拟攻略数据 */}
+          <div className="space-y-3">
+            {/* 96公里路线 */}
+            <div 
+              className="p-3 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border"
+              onClick={() => {
+                // 加载96公里路线
+                onLoadGuideRoute?.('96km');
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">96公里城市探索</h3>
+                <span className="text-sm text-muted-foreground">96.0公里</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">包含12个地点，预计耗时18小时</p>
+            </div>
+            
+            {/* 500公里路线 */}
+            <div 
+              className="p-3 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border"
+              onClick={() => {
+                // 加载500公里路线
+                onLoadGuideRoute?.('500km');
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">500公里长途跋涉</h3>
+                <span className="text-sm text-muted-foreground">500.0公里</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">包含25个地点，预计耗时100小时</p>
+            </div>
+            
+            {/* 其他示例路线 */}
+            <div 
+              className="p-3 rounded-md bg-background hover:bg-accent cursor-pointer transition-colors border border-border"
+              onClick={() => {
+                // 模拟加载其他路线
+                alert('加载周末短途游路线...');
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">周末短途游</h3>
+                <span className="text-sm text-muted-foreground">15.5公里</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">包含5个地点，预计耗时3小时</p>
+            </div>
+          </div>
+            </div>
           </Tabs.Content>
         </Tabs.Root>
       </div>

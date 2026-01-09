@@ -54,20 +54,43 @@ const MapView: React.FC<MapViewProps> = ({ center, zoom }) => {
 };
 
 const MapEvents: React.FC<MapEventsProps> = ({ onMapClick, tempMarker, setTempMarker }) => {
+  // 长按逻辑：只有长按1秒才触发标记地点
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressLatLngRef = useRef<[number, number] | null>(null);
+
   useMapEvents({
-    click: (e) => {
-      try {
-        const latlng: [number, number] = [e.latlng.lat, e.latlng.lng];
-        setTempMarker(latlng);
-        onMapClick(latlng);
-        
-        setTimeout(() => {
-          setTempMarker(null);
-        }, 3000);
-      } catch (error) {
-        console.error('Map click error:', error);
-        showError(error as Error);
+    // 鼠标按下，启动长按计时器
+    mousedown: (e) => {
+      longPressLatLngRef.current = [e.latlng.lat, e.latlng.lng];
+      longPressTimerRef.current = setTimeout(() => {
+        // 长按1秒后触发标记地点
+        if (longPressLatLngRef.current) {
+          setTempMarker(longPressLatLngRef.current);
+          onMapClick(longPressLatLngRef.current);
+          
+          setTimeout(() => {
+            setTempMarker(null);
+          }, 3000);
+        }
+      }, 1000);
+    },
+    
+    // 鼠标松开，清除计时器
+    mouseup: () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
       }
+      longPressLatLngRef.current = null;
+    },
+    
+    // 鼠标离开地图，清除计时器
+    mouseout: () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      longPressLatLngRef.current = null;
     },
   });
 
@@ -230,24 +253,42 @@ const Map: React.FC<MapProps> = ({
     loadLeaflet();
   }, []);
 
+  // 为地图flyTo添加防抖处理，避免频繁点击导致的卡顿
+  const flyToDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
     if (isClient && mapRef.current && selectedFootprintId && L) {
       const selectedFootprint = footprints.find(fp => fp.id === selectedFootprintId);
       if (selectedFootprint) {
         try {
-          // 平滑移动到选中足迹的坐标
-          mapRef.current.flyTo(selectedFootprint.coordinates, zoom, {
-            duration: 1.5,
-            easeLinearity: 0.25,
-          });
+          // 清除之前的计时器
+          if (flyToDebounceRef.current) {
+            clearTimeout(flyToDebounceRef.current);
+          }
           
-          // 更新目标足迹，显示详情面板
-          setTargetFootprint(selectedFootprint);
+          // 防抖处理，300ms后执行
+          flyToDebounceRef.current = setTimeout(() => {
+            // 平滑移动到选中足迹的坐标
+            mapRef.current.flyTo(selectedFootprint.coordinates, zoom, {
+              duration: 1.5,
+              easeLinearity: 0.25,
+            });
+            
+            // 更新目标足迹，显示详情面板
+            setTargetFootprint(selectedFootprint);
+          }, 300);
         } catch (error) {
           console.error('Failed to center map:', error);
         }
       }
     }
+    
+    // 清理函数
+    return () => {
+      if (flyToDebounceRef.current) {
+        clearTimeout(flyToDebounceRef.current);
+      }
+    };
   }, [selectedFootprintId, footprints, isClient, L, zoom]);
 
   // 当选中足迹变化时，计算OSRM步行路线 - 添加防抖机制

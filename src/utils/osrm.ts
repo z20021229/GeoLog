@@ -65,6 +65,77 @@ export const getOSRMWalkingRoute = async (coordinates: [number, number][]): Prom
 };
 
 /**
+ * 调用OSRM trip接口获取优化的最短路径（解决旅行商问题）
+ * @param coordinates 坐标数组，格式为 [[纬度, 经度], [纬度, 经度], ...]
+ * @returns 包含优化后的路径、距离、时间和优化顺序的对象，失败时返回null
+ */
+export const getOSRMTripRoute = async (coordinates: [number, number][]): Promise<{
+  path: [number, number][];
+  distance: number;
+  duration: number;
+  optimizedOrder: number[];
+} | null> => {
+  try {
+    if (coordinates.length < 2) {
+      return null;
+    }
+    
+    // OSRM API需要的格式是 lon,lat;lon,lat
+    const coordinatesStr = coordinates
+      .map(coord => `${coord[1]},${coord[0]}`) // 转换为 lon,lat 格式
+      .join(';');
+    
+    // 使用OSRM trip接口，专门用于解决旅行商问题
+    const url = `https://router.project-osrm.org/trip/v1/walking/${coordinatesStr}?overview=full&geometries=geojson&source=first&destination=last`;
+    
+    // 设置超时时间为8秒，trip接口可能需要更长时间
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`OSRM trip API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // 检查API响应是否成功
+    if (data.code !== 'Ok' || !data.trips || data.trips.length === 0) {
+      console.warn('OSRM trip API returned invalid response:', data.code);
+      return null;
+    }
+    
+    const trip = data.trips[0];
+    
+    // 将OSRM返回的坐标转换为 [纬度, 经度] 格式
+    const path = trip.geometry.coordinates.map((coord: [number, number]) => 
+      [coord[1], coord[0]] as [number, number]
+    );
+    
+    // 获取优化后的顺序，data.waypoints包含原始索引
+    const optimizedOrder = data.waypoints
+      .map((wp: any) => wp.waypoint_index)
+      .filter((idx: number) => idx >= 0); // 过滤掉-1（如果有的话）
+    
+    return {
+      path: path,
+      distance: trip.distance,
+      duration: trip.duration,
+      optimizedOrder: optimizedOrder
+    };
+  } catch (error) {
+    console.error('Error fetching OSRM trip route:', error);
+    return null;
+  }
+};
+
+/**
  * 格式化距离，转换为合适的单位（米或公里）
  * @param distance 距离（米）
  * @returns 格式化后的距离字符串

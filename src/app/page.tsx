@@ -80,6 +80,55 @@ const Home: React.FC = () => {
     setWalkingRoute(route);
   };
 
+  // 处理从攻略库加载路线
+  const handleLoadGuideRoute = (routeType: '96km' | '500km') => {
+    // 模拟加载不同长度的路线
+    const mockFootprints: Footprint[] = [];
+    
+    if (routeType === '96km') {
+      // 模拟96公里路线，创建12个随机足迹点
+      for (let i = 0; i < 12; i++) {
+        // 创建大致围绕北京的随机坐标
+        const lat = 39.9042 + (Math.random() - 0.5) * 0.5;
+        const lng = 116.4074 + (Math.random() - 0.5) * 0.5;
+        
+        mockFootprints.push({
+          id: `mock-${Date.now()}-${i}`,
+          name: `地点 ${i + 1}`,
+          location: `模拟位置 ${i + 1}`,
+          coordinates: [lat, lng],
+          description: `这是96公里路线的第${i + 1}个地点`,
+          category: '户外',
+          date: new Date().toISOString().split('T')[0],
+          createdAt: Date.now(),
+        });
+      }
+    } else {
+      // 模拟500公里路线，创建25个随机足迹点，范围更大
+      for (let i = 0; i < 25; i++) {
+        // 创建更大范围的随机坐标，模拟长途路线
+        const lat = 39.9042 + (Math.random() - 0.5) * 5;
+        const lng = 116.4074 + (Math.random() - 0.5) * 5;
+        
+        mockFootprints.push({
+          id: `mock-${Date.now()}-${i}`,
+          name: `长途地点 ${i + 1}`,
+          location: `长途位置 ${i + 1}`,
+          coordinates: [lat, lng],
+          description: `这是500公里路线的第${i + 1}个地点`,
+          category: '户外',
+          date: new Date().toISOString().split('T')[0],
+          createdAt: Date.now(),
+        });
+      }
+    }
+    
+    // 进入路线规划模式
+    setIsRoutePlanning(true);
+    // 设置选中的足迹
+    setSelectedFootprints(mockFootprints);
+  };
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
@@ -96,6 +145,8 @@ const Home: React.FC = () => {
         walkingRoute={walkingRoute}
         isRoutePlanning={isRoutePlanning}
         onRoutePlanToggle={handleRoutePlanToggle}
+        onWalkingRouteChange={handleWalkingRouteChange}
+        onLoadGuideRoute={handleLoadGuideRoute}
       />
       
       {/* Main Content - Map */}
