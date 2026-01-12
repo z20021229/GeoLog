@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import Table from '@/components/ui/Table';
+import Table from '@/components/ui/table';
 import EditHostModal from '@/components/Dialog/EditHostModal';
 import { HostConfig } from '@/types';
 
