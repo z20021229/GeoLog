@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Table } from '@/components/ui/Table';
+import Table from '@/components/ui/Table';
 import EditHostModal from '@/components/Dialog/EditHostModal';
 import { HostConfig } from '@/types';
 
@@ -85,10 +85,16 @@ const HostPage: React.FC = () => {
               <td>{host.dbDriver === 'GaussDB' ? 'GaussDB 505.2.1' : host.dbDriver}</td>
               <td>{host.dbUser}</td>
               <td>
-                <span className="flex items-center text-green-500">
-                  <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse mr-2"></span>
-                  正常
-                </span>
+                {host.ip.startsWith('10.168.') ? (
+                  <span className="flex items-center">
+                    <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse mr-2"></span>
+                    <span className="px-2 py-0.5 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                      在线
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-gray-500">离线</span>
+                )}
               </td>
               <td>
                 <div className="flex space-x-2">

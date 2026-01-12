@@ -65,10 +65,10 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
   React.useEffect(() => {
     // 使用正则匹配10.168.网段
     if (/^10\.168\./.test(formValues.ip)) {
-      // 自动选择GaussDB 505.2.1
-      setValue('dbDriver', 'GaussDB');
       // 自动填入默认用户名'root'
       setValue('username', 'root');
+      // 默认选中第一个数据库驱动
+      setValue('dbDriver', 'GaussDB');
     }
   }, [formValues.ip, setValue]);
 
@@ -83,8 +83,8 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
     try {
       // 使用正则匹配10.168.网段
       if (/^10\.168\./.test(formValues.ip)) {
-        // 模拟1秒加载
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 模拟1.5秒加载
+        await new Promise(resolve => setTimeout(resolve, 1500));
         setHostTestStatus('success');
       } else {
         const result = await testHostConnection(
@@ -108,8 +108,8 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
     try {
       // 使用正则匹配10.168.网段
       if (/^10\.168\./.test(formValues.ip)) {
-        // 模拟1秒加载
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 模拟1.5秒加载
+        await new Promise(resolve => setTimeout(resolve, 1500));
         setDbTestStatus('success');
       } else {
         const result = await testDatabaseConnection(
@@ -132,10 +132,6 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
 
   const onSubmit: SubmitHandler<HostConfigFormData> = (data) => {
     onSave(data);
-    // 增强保存反馈
-    if (/^10\.168\./.test(data.ip)) {
-      showToast('✅ 已成功连接内网 10.168.0.0/16 实验网段', 'success');
-    }
     onClose();
   };
 
