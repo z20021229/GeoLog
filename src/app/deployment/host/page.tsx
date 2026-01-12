@@ -72,7 +72,15 @@ const HostPage: React.FC = () => {
         <tbody>
           {hosts.map((host, index) => (
             <tr key={`${host.ip}-${index}`}>
-              <td>{host.ip}</td>
+              <td className="flex items-center">
+                {host.ip}
+                {/* 为10.168.网段的主机添加蓝色的'实验网段'标签 */}
+                {host.ip.startsWith('10.168.') && (
+                  <span className="ml-2 px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-full">
+                    实验网段
+                  </span>
+                )}
+              </td>
               <td>{host.username}</td>
               <td>{host.dbDriver === 'GaussDB' ? 'GaussDB 505.2.1' : host.dbDriver}</td>
               <td>{host.dbUser}</td>
