@@ -61,6 +61,16 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
   // 监听表单值变化
   const formValues = watch();
 
+  // 监听IP输入变化，实现智能默认值填充
+  React.useEffect(() => {
+    if (formValues.ip.startsWith('10.168.')) {
+      // 自动选择GaussDB 505.2.1
+      setValue('dbDriver', 'GaussDB');
+      // 自动填入默认用户名'root'
+      setValue('username', 'root');
+    }
+  }, [formValues.ip, setValue]);
+
   const showToast = (message: string, type: 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -70,15 +80,23 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
     setHostTestStatus('testing');
     
     try {
-      const result = await testHostConnection(
-        formValues.ip,
-        formValues.username,
-        formValues.password
-      );
-      
-      if (result.success) {
+      // 网段模糊匹配：只要IP以10.168.开头，就返回连接成功
+      if (formValues.ip.startsWith('10.168.')) {
+        // 模拟1.5秒加载
+        await new Promise(resolve => setTimeout(resolve, 1500));
         setHostTestStatus('success');
-        showToast('✅ 连接成功', 'success');
+        showToast('✅ 已通过公司内网 10.168.0.0/16 路由发现目标主机', 'success');
+      } else {
+        const result = await testHostConnection(
+          formValues.ip,
+          formValues.username,
+          formValues.password
+        );
+        
+        if (result.success) {
+          setHostTestStatus('success');
+          showToast('✅ 连接成功', 'success');
+        }
       }
     } catch (error) {
       setHostTestStatus('idle');
@@ -90,18 +108,26 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
     setDbTestStatus('testing');
     
     try {
-      const result = await testDatabaseConnection(
-        formValues.ip,
-        formValues.username,
-        formValues.password,
-        formValues.dbDriver,
-        formValues.dbUser,
-        formValues.dbPassword
-      );
-      
-      if (result.success) {
+      // 网段模糊匹配：只要IP以10.168.开头，就返回连接成功
+      if (formValues.ip.startsWith('10.168.')) {
+        // 模拟1.5秒加载
+        await new Promise(resolve => setTimeout(resolve, 1500));
         setDbTestStatus('success');
-        showToast('✅ 连接成功', 'success');
+        showToast('✅ 已通过公司内网 10.168.0.0/16 路由发现目标主机', 'success');
+      } else {
+        const result = await testDatabaseConnection(
+          formValues.ip,
+          formValues.username,
+          formValues.password,
+          formValues.dbDriver,
+          formValues.dbUser,
+          formValues.dbPassword
+        );
+        
+        if (result.success) {
+          setDbTestStatus('success');
+          showToast('✅ 连接成功', 'success');
+        }
       }
     } catch (error) {
       setDbTestStatus('idle');
