@@ -226,7 +226,6 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
               <Select
                 value={formValues.dbDriver}
                 onValueChange={(value) => setValue('dbDriver', value as HostConfig['dbDriver'])}
-                className="col-span-9"
               >
                 <SelectTrigger id="dbDriver" className="focus:ring-blue-500">
                   <SelectValue placeholder="选择数据库驱动" />
