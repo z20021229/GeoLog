@@ -43,7 +43,7 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
   const {
     register,
     handleSubmit,
-    watch,
+    getValues,
     setValue,
     formState: { errors },
   } = useForm<HostConfigFormData>({
@@ -58,19 +58,17 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
     },
   });
 
-  // 监听表单值变化
-  const formValues = watch();
-
   // 监听IP输入变化，实现智能默认值填充
   React.useEffect(() => {
+    const currentIp = getValues('ip');
     // 使用正则匹配10.168.网段
-    if (/^10\.168\./.test(formValues.ip)) {
+    if (/^10\.168\./.test(currentIp)) {
       // 自动填入默认用户名'root'
       setValue('username', 'root');
       // 默认选中第一个数据库驱动
       setValue('dbDriver', 'GaussDB');
     }
-  }, [formValues.ip, setValue]);
+  }, [getValues, setValue]);
 
   const showToast = (message: string, type: 'success') => {
     setToast({ message, type });
@@ -78,55 +76,75 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
   };
 
   const handleHostTest = async () => {
+    const values = getValues(); // 关键修复：直接向表单要数据
+    if (!values.ip || !values.username || !values.password) {
+      setToast({ message: "请先完整填写主机连接凭据", type: 'success' });
+      return;
+    }
+    
     setHostTestStatus('testing');
     
     try {
-      // 使用正则匹配10.168.网段
-      if (/^10\.168\./.test(formValues.ip)) {
+      // 使用正则匹配10.168.网段且用户名为root的拟真逻辑
+      if (/^10\.168\./.test(values.ip) && values.username === 'root') {
         // 模拟1.5秒加载
         await new Promise(resolve => setTimeout(resolve, 1500));
         setHostTestStatus('success');
       } else {
         const result = await testHostConnection(
-          formValues.ip,
-          formValues.username,
-          formValues.password
+          values.ip,
+          values.username,
+          values.password
         );
         
         if (result.success) {
           setHostTestStatus('success');
+        } else {
+          setHostTestStatus('idle');
+          setToast({ message: "主机连接失败", type: 'success' });
         }
       }
     } catch (error) {
       setHostTestStatus('idle');
+      setToast({ message: "主机连接失败", type: 'success' });
     }
   };
 
   const handleDbTest = async () => {
+    const values = getValues(); // 关键修复：直接向表单要数据
+    if (!values.ip || !values.username || !values.password || !values.dbUser || !values.dbPassword) {
+      setToast({ message: "请先完整填写数据库连接信息", type: 'success' });
+      return;
+    }
+    
     setDbTestStatus('testing');
     
     try {
-      // 使用正则匹配10.168.网段
-      if (/^10\.168\./.test(formValues.ip)) {
+      // 使用正则匹配10.168.网段且用户名为root的拟真逻辑
+      if (/^10\.168\./.test(values.ip) && values.username === 'root') {
         // 模拟1.5秒加载
         await new Promise(resolve => setTimeout(resolve, 1500));
         setDbTestStatus('success');
       } else {
         const result = await testDatabaseConnection(
-          formValues.ip,
-          formValues.username,
-          formValues.password,
-          formValues.dbDriver,
-          formValues.dbUser,
-          formValues.dbPassword
+          values.ip,
+          values.username,
+          values.password,
+          values.dbDriver,
+          values.dbUser,
+          values.dbPassword
         );
         
         if (result.success) {
           setDbTestStatus('success');
+        } else {
+          setDbTestStatus('idle');
+          setToast({ message: "数据库连接失败", type: 'success' });
         }
       }
     } catch (error) {
       setDbTestStatus('idle');
+      setToast({ message: "数据库连接失败", type: 'success' });
     }
   };
 
@@ -224,7 +242,7 @@ const EditHostModal: React.FC<EditHostModalProps> = ({ open, onClose, onSave, in
                 <span className="text-red-500 mr-1">*</span>选择数据库驱动
               </label>
               <Select
-                value={formValues.dbDriver}
+                value={getValues('dbDriver')}
                 onValueChange={(value) => setValue('dbDriver', value as HostConfig['dbDriver'])}
               >
                 <SelectTrigger id="dbDriver" className="focus:ring-blue-500">
